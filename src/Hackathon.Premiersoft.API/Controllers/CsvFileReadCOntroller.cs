@@ -21,5 +21,19 @@ namespace Hackathon.Premiersoft.API.Controllers
             // Add your CSV reading logic here
             return Ok("CSV data read successfully");
         }
+
+
+        public class RespostaOk
+        {
+            public string Status { get; set; }
+        }
+
+        [HttpGet]
+        [HttpGet("ok")]
+        public IActionResult RetornaOk()
+        {
+            var resposta = new RespostaOk { Status = "ok" };
+            return Ok(resposta);
+        }
     }
 }
