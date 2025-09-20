@@ -8,6 +8,14 @@ namespace Hackathon.Premiersoft.API.Engines.Extensions
     public class CsvFileReaderEngine : Factory.IFileReaderEngine
     {
         public string FileReaderProvider => Extensions.FileReaderProvider.CsvReaderProvider;
+
+        private readonly CsvReaderOptions _options;
+
+        public CsvFileReaderEngine(CsvReaderOptions options = null)
+        {
+            _options = options ?? new CsvReaderOptions();
+        }
+
         public void Run(string preSignedUrl)
         {
             try
@@ -17,7 +25,7 @@ namespace Hackathon.Premiersoft.API.Engines.Extensions
             }
             catch (Exception ex)
             {
-                var tratamentoErros =  new CsvMappedData
+                var tratamentoErros = new CsvMappedData
                 {
                     Headers = new List<CsvHeader>(),
                     Rows = new List<CsvRow>(),
@@ -28,16 +36,9 @@ namespace Hackathon.Premiersoft.API.Engines.Extensions
                         ProcessedAt = DateTime.UtcNow
                     }
                 };
+
             }
         }
-
-        private readonly CsvReaderOptions _options;
-
-        public CsvFileReaderEngine(CsvReaderOptions options = null)
-        {
-            _options = options ?? new CsvReaderOptions();
-        }
-
 
         private CsvMappedData ParseCsvData(string csvContent)
         {
@@ -49,6 +50,12 @@ namespace Hackathon.Premiersoft.API.Engines.Extensions
             }
 
             var headers = ParseHeaders(lines[0]);
+
+            if (!headers.Any())
+            {
+                return CreateEmptyResult("Nenhum cabeçalho válido encontrado.");
+            }
+
             var rows = ParseRows(lines.Skip(1).ToArray(), headers);
 
             return new CsvMappedData
@@ -75,19 +82,30 @@ namespace Hackathon.Premiersoft.API.Engines.Extensions
 
         private List<CsvHeader> ParseHeaders(string headerLine)
         {
-            var headerValues = SplitCsvLine(headerLine);
+            var headerValues = SplitCsvLine(headerLine)
+                .Where(h => !string.IsNullOrWhiteSpace(h))
+                .ToList();
+
+            if (headerValues.Count == 0)
+            {
+                throw new Exception("Cabeçalhos do CSV estão vazios.");
+            }
+
             var headers = new List<CsvHeader>();
 
             for (int i = 0; i < headerValues.Count; i++)
             {
-                var header = new CsvHeader
+                var headerName = headerValues[i].Trim();
+                if (string.IsNullOrWhiteSpace(headerName))
+                    continue;
+
+                headers.Add(new CsvHeader
                 {
                     Index = i,
-                    Name = headerValues[i].Trim(),
-                    NormalizedName = NormalizeHeaderName(headerValues[i].Trim()),
-                    InferredType = typeof(string) // Inicialmente string, será inferido depois
-                };
-                headers.Add(header);
+                    Name = headerName,
+                    NormalizedName = NormalizeHeaderName(headerName),
+                    InferredType = typeof(string)
+                });
             }
 
             return headers;
@@ -99,41 +117,40 @@ namespace Hackathon.Premiersoft.API.Engines.Extensions
 
             for (int lineIndex = 0; lineIndex < dataLines.Length; lineIndex++)
             {
-                if (string.IsNullOrWhiteSpace(dataLines[lineIndex]))
+                var line = dataLines[lineIndex];
+                if (string.IsNullOrWhiteSpace(line))
                     continue;
 
-                var values = SplitCsvLine(dataLines[lineIndex]);
+                var values = SplitCsvLine(line);
+
+                if (values.All(v => string.IsNullOrWhiteSpace(v)))
+                    continue;
+
                 var rowData = new Dictionary<string, object>();
                 var rawValues = new List<string>();
 
-                for (int i = 0; i < Math.Max(values.Count, headers.Count); i++)
+                for (int i = 0; i < headers.Count; i++)
                 {
                     var value = i < values.Count ? values[i] : "";
-                    var header = i < headers.Count ? headers[i] : null;
+                    var header = headers[i];
 
                     rawValues.Add(value);
 
-                    if (header != null)
-                    {
-                        var convertedValue = ConvertValue(value, header);
-                        rowData[header.NormalizedName] = convertedValue;
+                    var convertedValue = ConvertValue(value, header);
+                    rowData[header.NormalizedName] = convertedValue;
 
-                        // Inferir tipo se ainda é string
-                        if (header.InferredType == typeof(string) && !string.IsNullOrEmpty(value))
-                        {
-                            header.InferredType = InferType(value);
-                        }
+                    if (header.InferredType == typeof(string) && !string.IsNullOrEmpty(value))
+                    {
+                        header.InferredType = InferType(value);
                     }
                 }
 
-                var row = new CsvRow
+                rows.Add(new CsvRow
                 {
                     Index = lineIndex,
                     Data = rowData,
                     RawValues = rawValues
-                };
-
-                rows.Add(row);
+                });
             }
 
             return rows;
@@ -153,9 +170,8 @@ namespace Hackathon.Premiersoft.API.Engines.Extensions
                 {
                     if (inQuotes && i + 1 < line.Length && line[i + 1] == '"')
                     {
-                        // Aspas duplas escapadas
                         current.Append('"');
-                        i++; // Pula a próxima aspa
+                        i++; // Skip next quote
                     }
                     else
                     {
