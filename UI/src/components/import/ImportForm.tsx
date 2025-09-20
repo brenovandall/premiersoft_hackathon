@@ -285,20 +285,6 @@ const ImportForm = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
-      {/* Aviso de integração */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <div className="flex items-center space-x-2">
-          <div className="text-blue-600">�</div>
-          <div>
-            <h3 className="text-sm font-medium text-blue-800">Sistema Integrado</h3>
-            <p className="text-xs text-blue-700 mt-1">
-              Upload real para S3 + Envio dos dados e mapeamentos para o backend via POST. 
-              Verifique o console do backend para ver os dados recebidos.
-            </p>
-          </div>
-        </div>
-      </div>
-
       {/* Header com progresso */}
       <div className="text-center">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
