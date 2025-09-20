@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { Upload, FileText, AlertCircle } from "lucide-react";
+import { Upload, FileText, AlertCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { DataType, FileFormat } from "@/types/import";
+import { useS3Upload } from "@/hooks/useS3Upload";
 
 const dataTypeOptions: { value: DataType; label: string }[] = [
   { value: "hospitals", label: "Hospitais" },
@@ -29,8 +30,8 @@ export const ImportForm = () => {
   const [fileFormat, setFileFormat] = useState<FileFormat | "">("");
   const [description, setDescription] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
+  const { uploadFile, isUploading, progress, error } = useS3Upload();
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: {
@@ -61,30 +62,29 @@ export const ImportForm = () => {
       return;
     }
 
-    setIsUploading(true);
-
     try {
-      // Simulate file upload processing
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const result = await uploadFile(selectedFile, dataType, fileFormat, description);
       
-      toast({
-        title: "Upload iniciado",
-        description: `Arquivo ${selectedFile.name} enviado para processamento.`,
-      });
+      if (result.success) {
+        toast({
+          title: "Upload realizado com sucesso!",
+          description: `Arquivo ${selectedFile.name} enviado para o S3. Chave: ${result.data?.key}`,
+        });
 
-      // Reset form
-      setSelectedFile(null);
-      setDataType("");
-      setFileFormat("");
-      setDescription("");
+        // Reset form
+        setSelectedFile(null);
+        setDataType("");
+        setFileFormat("");
+        setDescription("");
+      } else {
+        throw new Error(result.message || 'Erro no upload');
+      }
     } catch (error) {
       toast({
         title: "Erro no upload",
-        description: "Ocorreu um erro ao processar o arquivo. Tente novamente.",
+        description: error instanceof Error ? error.message : "Ocorreu um erro ao processar o arquivo. Tente novamente.",
         variant: "destructive",
       });
-    } finally {
-      setIsUploading(false);
     }
   };
 
@@ -186,9 +186,26 @@ export const ImportForm = () => {
         )}
       </div>
 
-      <Button type="submit" disabled={isUploading} className="w-full">
-        {isUploading ? "Processando..." : "Iniciar Processamento"}
+      <Button type="submit" disabled={isUploading || !selectedFile} className="w-full">
+        {isUploading ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Enviando... {progress?.percentage || 0}%
+          </>
+        ) : (
+          "Enviar Arquivo"
+        )}
       </Button>
+
+      {/* Progress Bar */}
+      {isUploading && progress && (
+        <div className="w-full bg-gray-200 rounded-full h-2 mt-4">
+          <div
+            className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+            style={{ width: `${progress.percentage}%` }}
+          />
+        </div>
+      )}
     </form>
   );
 };
