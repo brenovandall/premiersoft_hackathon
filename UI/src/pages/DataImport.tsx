@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { ImportForm } from "@/components/import/ImportForm";
+import ImportForm from "@/components/import/ImportForm";
 import { ImportHistory } from "@/components/import/ImportHistory";
 import { ErrorDetailsModal } from "@/components/import/ErrorDetailsModal";
 import { ImportRecord } from "@/types/import";

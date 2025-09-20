@@ -10,7 +10,8 @@ const s3Client = new S3Client({
   // Configurações para compatibilidade com navegador
   forcePathStyle: false, // Mudando para false para melhor compatibilidade
   requestHandler: {
-    requestTimeout: 300000, // 5 minutos
+    requestTimeout: 1800000, // 30 minutos para arquivos grandes
+    connectionTimeout: 60000, // 1 minuto para conectar
   },
 });
 

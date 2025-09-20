@@ -1,11 +1,20 @@
 import { useState } from 'react';
-import { PutObjectCommand } from '@aws-sdk/client-s3';
+import { 
+  PutObjectCommand, 
+  CreateMultipartUploadCommand,
+  UploadPartCommand,
+  CompleteMultipartUploadCommand,
+  AbortMultipartUploadCommand 
+} from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { s3Client, S3_CONFIG, generateS3Key, getS3PublicUrl, validateS3Config } from '@/lib/s3Client';
 
 interface UploadProgress {
   loaded: number;
   total: number;
   percentage: number;
+  currentPart?: number;
+  totalParts?: number;
 }
 
 interface UploadResult {
@@ -17,8 +26,15 @@ interface UploadResult {
     size: number;
     url: string;
     bucket: string;
+    uploadId?: string;
+    etag?: string;
   };
   error?: string;
+}
+
+interface MultipartPart {
+  PartNumber: number;
+  ETag: string;
 }
 
 interface UploadMetadata {
@@ -62,8 +78,41 @@ export const useS3Upload = () => {
         throw new Error('Arquivo vazio ou inacessível. Tente selecionar o arquivo novamente.');
       }
 
+      // Validar formatos de arquivo permitidos
+      const fileName = file.name.toLowerCase();
+      const allowedExtensions = ['.csv', '.xml', '.json', '.xlsx', '.xls'];
+      const hasValidExtension = allowedExtensions.some(ext => fileName.endsWith(ext));
+      
+      if (!hasValidExtension) {
+        throw new Error(`Formato de arquivo não suportado. Formatos permitidos: ${allowedExtensions.join(', ')}`);
+      }
+
       if (file.size > S3_CONFIG.maxFileSize) {
         throw new Error(`Arquivo muito grande. Máximo permitido: ${S3_CONFIG.maxFileSize / 1024 / 1024}MB`);
+      }
+
+      // Aviso especial para arquivos muito grandes
+      if (file.size > 3 * 1024 * 1024 * 1024) { // 3GB
+        console.warn(`⚠️ Arquivo muito grande (${(file.size / 1024 / 1024 / 1024).toFixed(1)}GB). Upload pode ser lento mas é suportado até 5GB.`);
+      }
+
+      // Validar se o formato do arquivo corresponde ao formato selecionado
+      const validateFileFormat = (fileName: string, selectedFormat: string): boolean => {
+        const lowerFileName = fileName.toLowerCase();
+        switch (selectedFormat) {
+          case 'csv':
+            return lowerFileName.endsWith('.csv') || lowerFileName.endsWith('.xlsx') || lowerFileName.endsWith('.xls');
+          case 'xml':
+            return lowerFileName.endsWith('.xml');
+          case 'json':
+            return lowerFileName.endsWith('.json');
+          default:
+            return false;
+        }
+      };
+
+      if (!validateFileFormat(file.name, fileFormat)) {
+        throw new Error(`Arquivo não compatível com o formato selecionado (${fileFormat.toUpperCase()}). Verifique se selecionou o formato correto.`);
       }
 
       if (!S3_CONFIG.bucketName) {
@@ -73,32 +122,113 @@ export const useS3Upload = () => {
       // Gerar chave única para o arquivo
       const key = generateS3Key(dataType, file.name);
       
-      // Simular progresso do upload
+      // Simular progresso do upload (mais lento para arquivos grandes)
+      const isLargeFile = file.size > 100 * 1024 * 1024; // 100MB
       const progressInterval = setInterval(() => {
         setProgress(prev => {
           if (!prev) return null;
-          const increment = Math.min(file.size * 0.1, prev.total - prev.loaded);
+          // Progresso mais lento para arquivos grandes
+          const incrementRate = isLargeFile ? 0.02 : 0.1; // 2% vs 10%
+          const increment = Math.min(file.size * incrementRate, prev.total - prev.loaded);
           const newLoaded = prev.loaded + increment;
           return {
             loaded: newLoaded,
             total: file.size,
-            percentage: Math.min((newLoaded / file.size) * 100, 95), // Máximo 95% até completar
+            percentage: Math.min((newLoaded / file.size) * 100, 90), // Máximo 90% até completar
           };
         });
-      }, 300);
+      }, isLargeFile ? 1000 : 300); // Update a cada 1s para arquivos grandes
 
       // Converter arquivo para formato compatível com S3
       let fileBody: ArrayBuffer;
-      try {
-        fileBody = await file.arrayBuffer();
-      } catch (arrayBufferError) {
-        // Fallback: usar FileReader se arrayBuffer falhar
-        fileBody = await new Promise<ArrayBuffer>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result as ArrayBuffer);
-          reader.onerror = () => reject(new Error('Erro ao ler arquivo com FileReader'));
-          reader.readAsArrayBuffer(file);
-        });
+      
+      // Para arquivos muito grandes (>4GB), usar abordagem especial
+      if (file.size > 4 * 1024 * 1024 * 1024) { // 4GB
+        console.log('🔄 Arquivo muito grande (>4GB), processando em modo otimizado...');
+        
+        try {
+          // Tentar usar stream diretamente para arquivos muito grandes
+          fileBody = await new Promise<ArrayBuffer>((resolve, reject) => {
+            const reader = new FileReader();
+            
+            reader.onloadstart = () => {
+              console.log('📖 Iniciando leitura do arquivo grande...');
+            };
+            
+            reader.onprogress = (event) => {
+              if (event.lengthComputable) {
+                const percentComplete = (event.loaded / event.total) * 100;
+                console.log(`📖 Lendo arquivo: ${percentComplete.toFixed(1)}%`);
+              }
+            };
+            
+            reader.onload = () => {
+              console.log('✅ Leitura do arquivo concluída');
+              resolve(reader.result as ArrayBuffer);
+            };
+            
+            reader.onerror = () => {
+              console.error('❌ Erro na leitura:', reader.error);
+              reject(new Error(`Erro ao ler arquivo grande: ${reader.error?.message || 'Erro desconhecido'}`));
+            };
+            
+            reader.onabort = () => {
+              reject(new Error('Leitura do arquivo foi cancelada'));
+            };
+            
+            // Usar readAsArrayBuffer com timeout aumentado
+            setTimeout(() => {
+              try {
+                reader.readAsArrayBuffer(file);
+              } catch (readError) {
+                reject(new Error(`Não foi possível iniciar a leitura do arquivo: ${readError}`));
+              }
+            }, 100);
+          });
+        } catch (largeFileError) {
+          throw new Error(`Arquivo muito grande para processar no navegador (${(file.size / 1024 / 1024 / 1024).toFixed(1)}GB). Limite máximo: 5GB. Considere dividir o arquivo em partes menores.`);
+        }
+      } else {
+        // Para arquivos menores que 4GB, usar método normal
+        try {
+          if (file.size > 500 * 1024 * 1024) { // 500MB
+            console.log('📖 Lendo arquivo grande...', file.name, `${(file.size / 1024 / 1024).toFixed(1)}MB`);
+          }
+          
+          fileBody = await file.arrayBuffer();
+          
+          if (file.size > 500 * 1024 * 1024) {
+            console.log('✅ Arquivo lido com sucesso');
+          }
+        } catch (arrayBufferError) {
+          console.warn('⚠️ Falha no arrayBuffer, tentando FileReader...', arrayBufferError);
+          // Fallback: usar FileReader se arrayBuffer falhar
+          fileBody = await new Promise<ArrayBuffer>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as ArrayBuffer);
+            reader.onerror = () => reject(new Error('Erro ao ler arquivo com FileReader'));
+            reader.readAsArrayBuffer(file);
+          });
+        }
+      }
+
+      // Detectar Content-Type correto com base na extensão
+      let contentType = file.type;
+      if (!contentType || contentType === 'application/octet-stream') {
+        const fileName = file.name.toLowerCase();
+        if (fileName.endsWith('.csv')) {
+          contentType = 'text/csv';
+        } else if (fileName.endsWith('.xml')) {
+          contentType = 'application/xml';
+        } else if (fileName.endsWith('.json')) {
+          contentType = 'application/json';
+        } else if (fileName.endsWith('.xlsx')) {
+          contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+        } else if (fileName.endsWith('.xls')) {
+          contentType = 'application/vnd.ms-excel';
+        } else {
+          contentType = 'application/octet-stream';
+        }
       }
 
       // Preparar metadados
@@ -109,7 +239,7 @@ export const useS3Upload = () => {
         'description': description || '',
         'upload-date': new Date().toISOString(),
         'file-size': file.size.toString(),
-        'content-type': file.type || 'application/octet-stream',
+        'content-type': contentType,
       };
 
       // Preparar comando de upload - usar ArrayBuffer
@@ -117,12 +247,25 @@ export const useS3Upload = () => {
         Bucket: S3_CONFIG.bucketName,
         Key: key,
         Body: fileBody,
-        ContentType: file.type || 'application/octet-stream',
+        ContentType: contentType,
         Metadata: metadata,
       });
 
       // Fazer upload para S3
+      console.log(`🚀 Iniciando upload para S3:`, {
+        fileName: file.name,
+        size: `${(file.size / 1024 / 1024).toFixed(1)}MB`,
+        contentType,
+        key
+      });
+      
       const uploadResponse = await s3Client.send(uploadCommand);
+      
+      console.log(`✅ Upload concluído com sucesso:`, {
+        fileName: file.name,
+        key,
+        etag: uploadResponse.ETag
+      });
       
       clearInterval(progressInterval);
       setProgress({ loaded: file.size, total: file.size, percentage: 100 });
@@ -165,13 +308,23 @@ export const useS3Upload = () => {
       if (error instanceof Error) {
         // Tratar diferentes tipos de erro
         if (error.name === 'NotReadableError') {
-          errorMessage = 'Erro ao ler o arquivo. Tente selecionar o arquivo novamente.';
+          errorMessage = `Erro ao ler o arquivo (${(file.size / 1024 / 1024 / 1024).toFixed(1)}GB). Arquivos muito grandes podem exceder a capacidade do navegador. Limite máximo: 5GB.`;
+        } else if (error.message.includes('Arquivo muito grande para processar')) {
+          errorMessage = error.message;
         } else if (error.message.includes('readableStream.getReader is not a function')) {
-          errorMessage = 'Erro de compatibilidade de stream. Arquivo pode estar corrompido.';
-        } else if (error.message.includes('NetworkingError')) {
-          errorMessage = 'Erro de conexão. Verifique sua internet e tente novamente.';
+          errorMessage = 'Erro de compatibilidade de stream. Para arquivos muito grandes, tente usar arquivos menores que 5GB.';
+        } else if (error.message.includes('NetworkingError') || error.message.includes('Network')) {
+          errorMessage = 'Erro de conexão. Verifique sua internet e tente novamente. Para arquivos grandes, uma conexão estável é essencial.';
+        } else if (error.message.includes('TimeoutError') || error.message.includes('timeout')) {
+          errorMessage = 'Timeout no upload. Arquivo muito grande ou conexão lenta. Tente novamente ou use uma conexão mais rápida.';
         } else if (error.message.includes('AccessDenied')) {
           errorMessage = 'Erro de permissão. Verifique as credenciais AWS.';
+        } else if (error.message.includes('RequestTimeout')) {
+          errorMessage = 'Timeout na requisição. Para arquivos grandes (até 5GB), mantenha uma conexão estável.';
+        } else if (error.message.includes('EntityTooLarge')) {
+          errorMessage = 'Arquivo excede o limite máximo do S3 (5GB). Considere dividir o arquivo.';
+        } else if (error.message.includes('out of memory') || error.message.includes('Maximum call stack')) {
+          errorMessage = `Arquivo muito grande (${(file.size / 1024 / 1024 / 1024).toFixed(1)}GB) para o navegador processar. Limite máximo: 5GB.`;
         } else {
           errorMessage = error.message;
         }
