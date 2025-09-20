@@ -4,7 +4,8 @@ import {
     UploadPartCommand,
     CompleteMultipartUploadCommand,
     AbortMultipartUploadCommand,
-    PutObjectCommand
+    PutObjectCommand,
+    GetObjectCommand
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { s3Client, S3_CONFIG, generateS3Key, getS3PublicUrl, validateS3Config } from '@/lib/s3Client';
@@ -29,6 +30,7 @@ interface UploadResult {
         bucket: string;
         uploadId?: string;
         etag?: string;
+        presignedUrl?: string; // URL pré-assinada para acesso direto
     };
     error?: string;
 }
@@ -114,11 +116,25 @@ export const useS3MultipartUpload = () => {
             console.log(`Configuração otimizada: ${(chunkSize / 1024 / 1024)}MB por parte, ${maxConcurrent} uploads simultâneos, ~${estimatedParts} partes`);
 
             // Decidir entre upload simples ou multipart
+            let result: UploadResult;
             if (file.size >= MIN_MULTIPART_SIZE) {
-                return await uploadMultipart(file, key, contentType, dataType, fileFormat, description, chunkSize, maxConcurrent);
+                result = await uploadMultipart(file, key, contentType, dataType, fileFormat, description, chunkSize, maxConcurrent);
             } else {
-                return await uploadSimple(file, key, contentType, dataType, fileFormat, description);
+                result = await uploadSimple(file, key, contentType, dataType, fileFormat, description);
             }
+
+            // Gerar URL pré-assinada se o upload foi bem-sucedido
+            if (result.success && result.data) {
+                try {
+                    const presignedUrl = await generatePresignedUrl(key);
+                    result.data.presignedUrl = presignedUrl;
+                } catch (presignedError) {
+                    console.warn('Erro ao gerar URL pré-assinada:', presignedError);
+                    // Não falhamos o upload por causa disso, apenas logamos o erro
+                }
+            }
+
+            return result;
 
         } catch (error) {
             console.error('❌ Erro no upload:', error);
@@ -138,6 +154,17 @@ export const useS3MultipartUpload = () => {
                 setError(null);
             }, 3000);
         }
+    };
+
+    // Função para gerar URL pré-assinada
+    const generatePresignedUrl = async (key: string): Promise<string> => {
+        const command = new GetObjectCommand({
+            Bucket: S3_CONFIG.bucketName,
+            Key: key,
+        });
+
+        // URL válida por 24 horas
+        return await getSignedUrl(s3Client, command, { expiresIn: 86400 });
     };
 
     const uploadSimple = async (
