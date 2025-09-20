@@ -58,7 +58,7 @@ export function validateS3Config(): { isValid: boolean; missingVars: string[] } 
 
 // Gerar URL pública para arquivo no S3
 export function getS3PublicUrl(key: string): string {
-  return `https://${S3_CONFIG.bucketName}.s3.${S3_CONFIG.region}.amazonaws.com/${key}`;
+  return `https://${S3_CONFIG.bucketName}.s3-accelerate.${S3_CONFIG.region}.amazonaws.com/${key}`;
 }
 
 // Função para testar conectividade S3
