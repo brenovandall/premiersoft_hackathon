@@ -1,5 +1,4 @@
-﻿using Hackathon.Premiersoft.API.Engines;
-using Hackathon.Premiersoft.API.Engines.Extensions;
+﻿using Hackathon.Premiersoft.API.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Hackathon.Premiersoft.API.Controllers
@@ -8,29 +7,25 @@ namespace Hackathon.Premiersoft.API.Controllers
     [Route("v1/[controller]")]
     public class CsvFileReadController : ControllerBase
     {
-        [HttpGet]
-        [HttpGet("ler")]  
-        public IActionResult GetCsvFileData()
+        private readonly S3Service _s3Service;
+
+        public CsvFileReadController(S3Service s3Service)
         {
-            var csvReader = new CsvFileReaderEngine(); 
-
-          
-            // Add your CSV reading logic here
-            return Ok("CSV data read successfully");
-        }
-
-
-        public class RespostaOk
-        {
-            public string Status { get; set; }
+            _s3Service = s3Service;
         }
 
         [HttpGet]
-        [HttpGet("ok")]
-        public IActionResult RetornaOk()
+        [HttpGet("ler")]
+        public IActionResult GetCsvFileDataAsync()
         {
-            var resposta = new RespostaOk { Status = "ok" };
-            return Ok(resposta);
+
+            var csvFileReaderEngine = new Engines.Extensions.CsvFileReaderEngine();
+            csvFileReaderEngine.Run(0);
+            
+
+            return Accepted(new { message = "Processamento iniciado em background" });
         }
+
+        
     }
 }
