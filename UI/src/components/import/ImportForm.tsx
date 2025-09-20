@@ -43,8 +43,8 @@ const ImportForm = () => {
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       ];
       
-      if (!allowedTypes.includes(file.type) && !file.name.match(/\.(csv|json|xml|xlsx?|txt)$/i)) {
-        setError("Tipo de arquivo não suportado. Aceitos: CSV, JSON, XML, Excel, TXT");
+      if (!allowedTypes.includes(file.type) && !file.name.match(/\.(csv|xml|xlsx?|txt)$/i)) {
+        setError("Tipo de arquivo não suportado. Aceitos: CSV, XML, Excel, TXT");
         return;
       }
 
@@ -230,9 +230,6 @@ const ImportForm = () => {
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
           Importação de Dados
         </h2>
-        <p className="text-gray-600">
-          Faça upload de arquivos CSV, XML ou Excel para importar dados
-        </p>
         
         {/* Indicador de progresso */}
         <div className="flex items-center justify-center mt-4 space-x-4">
@@ -276,9 +273,6 @@ const ImportForm = () => {
             <div>
               <p className="text-gray-600 mb-2">
                 Clique para selecionar ou arraste um arquivo aqui
-              </p>
-              <p className="text-sm text-gray-400">
-                CSV, JSON, XML, Excel (máx. 5GB)
               </p>
             </div>
           )}
@@ -445,7 +439,7 @@ const ImportForm = () => {
           Arquivos suportados: CSV, XML, Excel (.xls, .xlsx)
         </p>
         <p>
-          Tamanho máximo: 5GB | Upload multipart automático para arquivos grandes
+          Tamanho máximo: 5GBdes
         </p>
       </div>
     </div>

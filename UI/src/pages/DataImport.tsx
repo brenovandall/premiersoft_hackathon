@@ -37,12 +37,6 @@ const DataImport = () => {
               
               <TabsContent value="import" className="mt-6">
                 <div className="space-y-4">
-                  <div>
-                    <h2 className="text-xl font-semibold">Upload de Arquivo</h2>
-                    <p className="text-muted-foreground text-sm">
-                      Selecione um arquivo CSV, XML ou Excel para importar
-                    </p>
-                  </div>
                   <ImportForm />
                 </div>
               </TabsContent>
