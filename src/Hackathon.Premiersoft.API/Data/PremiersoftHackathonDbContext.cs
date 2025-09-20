@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Hackathon.Premiersoft.API.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace Hackathon.Premiersoft.API.Data
 {
@@ -7,12 +8,14 @@ namespace Hackathon.Premiersoft.API.Data
         public PremiersoftHackathonDbContext(DbContextOptions<PremiersoftHackathonDbContext> options) : base(options) { }
         protected PremiersoftHackathonDbContext() { }
 
-        // tabelas aqui
+        DbSet<Estados> Estados { get; set; }
+        DbSet<Municipios> Cidades { get; set; }
+        DbSet<Medicos> Medicos { get; set; }
+        DbSet<Hospitais> Hospitais { get ; set; }
+        DbSet<Pacientes> Pacientes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // alguma config aqui
-
             base.OnModelCreating(modelBuilder);
         }
     }
