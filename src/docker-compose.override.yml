@@ -2,7 +2,7 @@ services:
   applicationdb:
     container_name: applicationdb
     environment:
-      - ACCEPT_EULA=Y
+      - ACCEPT_EULA=Y   
       - SA_PASSWORD=T!9m@Q4z
     restart: always
     ports:
