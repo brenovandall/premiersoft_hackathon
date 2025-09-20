@@ -2,9 +2,9 @@
 {
     public class FileReaderEngineFactory : IFileReaderEngineFactory
     {
-        private readonly IFileReaderEngine[] _fileReaders;
+        private readonly IEnumerable<IFileReaderEngine> _fileReaders;
 
-        public FileReaderEngineFactory(IFileReaderEngine[] fileReaders)
+        public FileReaderEngineFactory(IEnumerable<IFileReaderEngine> fileReaders)
         {
             _fileReaders = fileReaders;
         }
