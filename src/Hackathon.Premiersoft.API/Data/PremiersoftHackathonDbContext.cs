@@ -13,6 +13,9 @@ namespace Hackathon.Premiersoft.API.Data
         DbSet<Medicos> Medicos { get; set; }
         DbSet<Hospitais> Hospitais { get ; set; }
         DbSet<Pacientes> Pacientes { get; set; }
+        DbSet<Import> Imports { get; set; }
+        DbSet<LineError> LineErrors { get; set; }
+        DbSet<Lookup> Lookups { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
