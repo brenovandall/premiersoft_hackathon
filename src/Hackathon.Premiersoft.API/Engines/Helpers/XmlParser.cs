@@ -1,13 +1,11 @@
-﻿using System.Xml;
+﻿using Hackathon.Premiersoft.API.Dto;
+using System.Xml;
 
 namespace Hackathon.Premiersoft.API.Engines.Helpers
 {
     public class XmlParser
     {
-        public IList<string> Tags { get; private set; } = new List<string>();
-        public IList<string> Values { get; private set; } = new List<string>();
-        public IDictionary<string, string> TagValuePair { get; private set; } = new Dictionary<string, string>();
-
+        private List<FileXmlDto> FileXmlDtos { get; set; } = new List<FileXmlDto>();
         private static Stream GenerateStreamFromString(string xml)
         {
             var stream = new MemoryStream();
@@ -18,7 +16,7 @@ namespace Hackathon.Premiersoft.API.Engines.Helpers
             return stream;
         }
 
-        public void ParseXml(string xml)
+        public List<FileXmlDto> ParseXml(string xml)
         {
             using Stream stream = GenerateStreamFromString(xml);
 
@@ -42,16 +40,22 @@ namespace Hackathon.Premiersoft.API.Engines.Helpers
 
                             if (!string.IsNullOrWhiteSpace(value))
                             {
-                                Tags.Add(tagName);
-                                Values.Add(value);
-                                TagValuePair[tagName] = value;
+                                int lineNumber = 0;
+                                if (reader is IXmlLineInfo lineInfo && lineInfo.HasLineInfo())
+                                {
+                                    lineNumber = lineInfo.LineNumber;
+                                }
 
-                                Console.WriteLine($"{tagName}: {value}");
+                             //   FileXmlDtos.Add(new FileXmlDto().Criar(lineNumber, tagName, value));
+
+                                Console.WriteLine($"Line {lineNumber} - {tagName}: {value}");
                             }
                         }
                     }
                 }
             }
+
+            return FileXmlDtos;
         }
     }
 }

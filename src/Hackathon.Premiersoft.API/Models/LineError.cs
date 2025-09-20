@@ -13,7 +13,7 @@ namespace Hackathon.Premiersoft.API.Models
         public Import Import { get; private set; } = default!;
 
         [Required]
-        public int Line { get; private set; }
+        public long Line { get; private set; }
 
         [Required]
         public string Field { get; private set; } = default!;
@@ -26,7 +26,7 @@ namespace Hackathon.Premiersoft.API.Models
 
         protected LineError() { }
 
-        public LineError(long importId, Import import, int line, string field, string error, string value)
+        public LineError(long importId, Import import, long line, string field, string error, string value)
         {
             ImportId = importId;
             Import = import;

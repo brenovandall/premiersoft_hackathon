@@ -1,8 +1,11 @@
 ﻿using Hackathon.Premiersoft.API.Data;
 using Hackathon.Premiersoft.API.Engines.Extensions;
 using Hackathon.Premiersoft.API.Engines.Factory;
+using Hackathon.Premiersoft.API.Engines.Xml;
 using Hackathon.Premiersoft.API.Messaging.MassTransit;
 using Hackathon.Premiersoft.API.Repository;
+using Hackathon.Premiersoft.API.Repository.Municipios;
+using Hackathon.Premiersoft.API.Repository.MunicipiosRepo;
 using Hackathon.Premiersoft.API.SharedKernel;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
@@ -52,6 +55,9 @@ namespace Hackathon.Premiersoft.API
         {
             services.AddScoped<IFileReaderEngineFactory, FileReaderEngineFactory>();
             services.AddScoped<IFileReaderEngine, ExcelFileReader>();
+            services.AddScoped<IXmlProcess, XmlProcess>();
+            services.AddScoped<IFileReaderEngine, XmlFileReader>();
+            services.AddScoped<IMunicipiosRepository, MunicipiosRepository>();
             //services.AddScoped<IFileReaderEngine, ExcelFileReaderEngine>();
             services.AddTransient<IDomainEventsDispatcher, DomainEventsDispatcher>();
 

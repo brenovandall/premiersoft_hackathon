@@ -2,7 +2,7 @@
 
 namespace Hackathon.Premiersoft.API.Models
 {
-    public class Municipios : Entity<int>
+    public class Municipios : Entity<long>
     {
         public string Codigo_ibge { get; set; }
         public string Nome { get; set; }
