@@ -43,10 +43,32 @@ export const useS3MultipartUpload = () => {
     const [progress, setProgress] = useState<UploadProgress | null>(null);
     const [error, setError] = useState<string | null>(null);
 
+    // Função para calcular tamanho ideal do chunk baseado no arquivo
+    const calculateOptimalChunkSize = (fileSize: number): number => {
+        if (fileSize < 500 * 1024 * 1024) { // < 500MB
+            return 25 * 1024 * 1024; // 25MB chunks = ~20 partes
+        } else if (fileSize < 2 * 1024 * 1024 * 1024) { // < 2GB
+            return 50 * 1024 * 1024; // 50MB chunks = ~40 partes para 2GB
+        } else if (fileSize < 5 * 1024 * 1024 * 1024) { // < 5GB
+            return 100 * 1024 * 1024; // 100MB chunks = ~26 partes para 2.6GB
+        } else {
+            return 200 * 1024 * 1024; // 200MB chunks para arquivos muito grandes
+        }
+    };
+
+    // Função para calcular concorrência ideal baseada no arquivo
+    const calculateOptimalConcurrency = (fileSize: number): number => {
+        if (fileSize < 500 * 1024 * 1024) { // < 500MB
+            return 3; // 3 uploads simultâneos
+        } else if (fileSize < 2 * 1024 * 1024 * 1024) { // < 2GB
+            return 5; // 5 uploads simultâneos
+        } else {
+            return 8; // 8 uploads simultâneos para arquivos muito grandes (2.6GB)
+        }
+    };
+
     // Constantes para multipart upload
-    const CHUNK_SIZE = 10 * 1024 * 1024; // 10MB por parte
     const MIN_MULTIPART_SIZE = 100 * 1024 * 1024; // 100MB - usar multipart para arquivos maiores
-    const MAX_CONCURRENT_UPLOADS = 3; // Máximo 3 uploads simultâneos
 
     const uploadFile = async (
         file: File,
@@ -79,15 +101,21 @@ export const useS3MultipartUpload = () => {
                 throw new Error(`Arquivo muito grande. Máximo permitido: ${(S3_CONFIG.maxFileSize / 1024 / 1024 / 1024).toFixed(1)}GB`);
             }
 
+            // Calcular configurações otimizadas para este arquivo
+            const chunkSize = calculateOptimalChunkSize(file.size);
+            const maxConcurrent = calculateOptimalConcurrency(file.size);
+            const estimatedParts = Math.ceil(file.size / chunkSize);
+
             // Gerar chave e detectar content type
             const key = generateS3Key(dataType, file.name);
             const contentType = detectContentType(file);
 
             console.log(`🚀 Iniciando upload: ${file.name} (${(file.size / 1024 / 1024).toFixed(1)}MB)`);
+            console.log(`⚡ Configuração otimizada: ${(chunkSize / 1024 / 1024)}MB por parte, ${maxConcurrent} uploads simultâneos, ~${estimatedParts} partes`);
 
             // Decidir entre upload simples ou multipart
             if (file.size >= MIN_MULTIPART_SIZE) {
-                return await uploadMultipart(file, key, contentType, dataType, fileFormat, description);
+                return await uploadMultipart(file, key, contentType, dataType, fileFormat, description, chunkSize, maxConcurrent);
             } else {
                 return await uploadSimple(file, key, contentType, dataType, fileFormat, description);
             }
@@ -172,9 +200,15 @@ export const useS3MultipartUpload = () => {
         contentType: string,
         dataType: string,
         fileFormat: string,
-        description?: string
+        description?: string,
+        chunkSize?: number,
+        maxConcurrent?: number
     ): Promise<UploadResult> => {
         console.log('🔄 Upload multipart');
+
+        // Usar configurações otimizadas ou valores padrão
+        const actualChunkSize = chunkSize || calculateOptimalChunkSize(file.size);
+        const actualMaxConcurrent = maxConcurrent || calculateOptimalConcurrency(file.size);
 
         let uploadId: string | undefined;
 
@@ -192,8 +226,8 @@ export const useS3MultipartUpload = () => {
 
             console.log(`📋 Upload multipart iniciado: ${uploadId}`);
 
-            // 2. Calcular número de partes
-            const totalParts = Math.ceil(file.size / CHUNK_SIZE);
+            // 2. Calcular número de partes com novo chunk size
+            const totalParts = Math.ceil(file.size / actualChunkSize);
 
             setProgress(prev => prev ? {
                 ...prev,
@@ -202,10 +236,11 @@ export const useS3MultipartUpload = () => {
                 currentPart: 0
             } : null);
 
-            console.log(`📦 Dividindo em ${totalParts} partes de ${(CHUNK_SIZE / 1024 / 1024).toFixed(1)}MB`);
+            console.log(`📦 Dividindo em ${totalParts} partes de ${(actualChunkSize / 1024 / 1024).toFixed(1)}MB`);
+            console.log(`🚀 Usando ${actualMaxConcurrent} uploads simultâneos para máxima velocidade`);
 
             // 3. Upload das partes
-            const parts = await uploadParts(file, key, uploadId, totalParts);
+            const parts = await uploadParts(file, key, uploadId, totalParts, actualChunkSize, actualMaxConcurrent);
 
             // 4. Completar upload multipart
             setProgress(prev => prev ? { ...prev, phase: 'completing' } : null);
@@ -268,15 +303,20 @@ export const useS3MultipartUpload = () => {
         file: File,
         key: string,
         uploadId: string,
-        totalParts: number
+        totalParts: number,
+        chunkSize?: number,
+        maxConcurrent?: number
     ): Promise<MultipartPart[]> => {
         const parts: MultipartPart[] = [];
         const uploadPromises: Promise<MultipartPart>[] = [];
+        
+        const actualChunkSize = chunkSize || calculateOptimalChunkSize(file.size);
+        const actualMaxConcurrent = maxConcurrent || calculateOptimalConcurrency(file.size);
 
         // Função para upload de uma parte com retry
         const uploadPart = async (partNumber: number, retries = 3): Promise<MultipartPart> => {
-            const start = (partNumber - 1) * CHUNK_SIZE;
-            const end = Math.min(start + CHUNK_SIZE, file.size);
+            const start = (partNumber - 1) * actualChunkSize;
+            const end = Math.min(start + actualChunkSize, file.size);
             const chunk = file.slice(start, end);
 
             console.log(`📤 Enviando parte ${partNumber}/${totalParts} (${(chunk.size / 1024 / 1024).toFixed(1)}MB)`);
@@ -300,7 +340,7 @@ export const useS3MultipartUpload = () => {
 
                     // Atualizar progresso
                     const completedParts = parts.length + 1;
-                    const loaded = completedParts * CHUNK_SIZE;
+                    const loaded = completedParts * actualChunkSize;
                     const percentage = Math.min((loaded / file.size) * 100, 95);
 
                     setProgress(prev => prev ? {
@@ -331,28 +371,27 @@ export const useS3MultipartUpload = () => {
             throw new Error(`Falha ao enviar parte ${partNumber} após ${retries} tentativas`);
         };
 
-    // Upload das partes com controle de concorrência otimizado
-    const maxConcurrent = Math.min(MAX_CONCURRENT_UPLOADS, Math.ceil(totalParts / 10)); // Reduzir concorrência para arquivos muito grandes
-    console.log(`🔧 Usando ${maxConcurrent} uploads simultâneos para ${totalParts} partes`);
+        // Upload das partes com controle de concorrência otimizado
+        console.log(`🔧 Usando ${actualMaxConcurrent} uploads simultâneos para ${totalParts} partes`);
 
-    for (let partNumber = 1; partNumber <= totalParts; partNumber++) {
-      uploadPromises.push(uploadPart(partNumber));
+        for (let partNumber = 1; partNumber <= totalParts; partNumber++) {
+            uploadPromises.push(uploadPart(partNumber));
 
-      // Controlar concorrência
-      if (uploadPromises.length >= maxConcurrent || partNumber === totalParts) {
-        try {
-          const completedParts = await Promise.all(uploadPromises);
-          parts.push(...completedParts);
-          uploadPromises.length = 0; // Limpar array
-          
-          // Log de progresso
-          console.log(`📊 Progresso: ${parts.length}/${totalParts} partes concluídas (${((parts.length / totalParts) * 100).toFixed(1)}%)`);
-        } catch (error) {
-          console.error('❌ Erro no lote de uploads:', error);
-          throw error;
-        }
-      }
-    }        return parts;
+            // Controlar concorrência
+            if (uploadPromises.length >= actualMaxConcurrent || partNumber === totalParts) {
+                try {
+                    const completedParts = await Promise.all(uploadPromises);
+                    parts.push(...completedParts);
+                    uploadPromises.length = 0; // Limpar array
+                    
+                    // Log de progresso
+                    console.log(`📊 Progresso: ${parts.length}/${totalParts} partes concluídas (${((parts.length / totalParts) * 100).toFixed(1)}%)`);
+                } catch (error) {
+                    console.error('❌ Erro no lote de uploads:', error);
+                    throw error;
+                }
+            }
+        }        return parts;
     };
 
     const detectContentType = (file: File): string => {
