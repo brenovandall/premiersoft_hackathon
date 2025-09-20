@@ -1,5 +1,5 @@
 export type DataType = "hospitals" | "doctors" | "patients" | "locations" | "cid10";
-export type FileFormat = "json" | "xml" | "csv";
+export type FileFormat = "xml" | "csv";
 export type ImportStatus = "processing" | "success" | "warning" | "error";
 
 export interface ImportRecord {

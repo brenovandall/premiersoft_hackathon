@@ -145,7 +145,7 @@ const ImportForm = () => {
           Importação de Dados
         </h2>
         <p className="text-gray-600">
-          Faça upload de arquivos CSV, JSON, XML ou Excel para importar dados
+          Faça upload de arquivos CSV, XML ou Excel para importar dados
         </p>
       </div>
 
@@ -259,7 +259,7 @@ const ImportForm = () => {
 
       <div className="text-center text-sm text-gray-500">
         <p>
-          Arquivos suportados: CSV, JSON, XML, Excel (.xls, .xlsx), TXT
+          Arquivos suportados: CSV, XML, Excel (.xls, .xlsx)
         </p>
         <p>
           Tamanho máximo: 5GB | Upload multipart automático para arquivos grandes

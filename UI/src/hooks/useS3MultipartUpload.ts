@@ -402,7 +402,6 @@ export const useS3MultipartUpload = () => {
         const fileName = file.name.toLowerCase();
         if (fileName.endsWith('.csv')) return 'text/csv';
         if (fileName.endsWith('.xml')) return 'application/xml';
-        if (fileName.endsWith('.json')) return 'application/json';
         if (fileName.endsWith('.xlsx')) return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
         if (fileName.endsWith('.xls')) return 'application/vnd.ms-excel';
 
