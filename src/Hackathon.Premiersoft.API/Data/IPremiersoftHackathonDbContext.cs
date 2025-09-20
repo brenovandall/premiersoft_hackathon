@@ -4,7 +4,6 @@ namespace Hackathon.Premiersoft.API.Data
 {
     public interface IPremiersoftHackathonDbContext
     {
-        // tabelas aqui
 
         int SaveChanges();
         Task<int> SaveChangesAsync(CancellationToken cancellationToken);

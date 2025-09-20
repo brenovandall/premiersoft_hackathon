@@ -7,15 +7,14 @@ namespace Hackathon.Premiersoft.API.Data
     {
         public PremiersoftHackathonDbContext(DbContextOptions<PremiersoftHackathonDbContext> options) : base(options) { }
         protected PremiersoftHackathonDbContext() { }
-
-        DbSet<Estados> Estados { get; set; }
-        DbSet<Municipios> Cidades { get; set; }
-        DbSet<Medicos> Medicos { get; set; }
-        DbSet<Hospitais> Hospitais { get ; set; }
-        DbSet<Pacientes> Pacientes { get; set; }
-        DbSet<Import> Imports { get; set; }
-        DbSet<LineError> LineErrors { get; set; }
-        DbSet<Lookup> Lookups { get; set; }
+        public DbSet<Estados> Estados { get; set; }
+        public DbSet<Municipios> Cidades { get; set; }
+        public DbSet<Medicos> Medicos { get; set; }
+        public DbSet<Hospitais> Hospitais { get ; set; }
+        public DbSet<Pacientes> Pacientes { get; set; }
+        public DbSet<Import> Imports { get; set; }
+        public DbSet<LineError> LineErrors { get; set; }
+        public DbSet<Lookup> Lookups { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
