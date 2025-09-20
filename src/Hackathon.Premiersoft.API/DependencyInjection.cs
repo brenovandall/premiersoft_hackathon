@@ -1,4 +1,5 @@
 ﻿using Hackathon.Premiersoft.API.Data;
+using Hackathon.Premiersoft.API.Engines.Factory;
 using Hackathon.Premiersoft.API.Repository;
 using Microsoft.EntityFrameworkCore;
 
@@ -43,7 +44,7 @@ namespace Hackathon.Premiersoft.API
 
         private static IServiceCollection AddApplicationRulesServices(this IServiceCollection services)
         {
-            // IoC aqui
+            services.AddScoped<IFileReaderEngineFactory, FileReaderEngineFactory>();
 
             return services;
         }
