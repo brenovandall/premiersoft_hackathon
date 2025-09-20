@@ -1,0 +1,9 @@
+services:
+  applicationdb:
+    image: mcr.microsoft.com/mssql/server
+
+  hackathon.premiersoft.api:
+    image: ${DOCKER_REGISTRY-}hackathonpremiersoftapi
+    build:
+      context: .
+      dockerfile: Hackathon.Premiersoft.API/Dockerfile
