@@ -1,18 +1,46 @@
 import { KPICard } from "./KPICard";
 import { ChartCard } from "./ChartCard";
 import { BrazilMap } from "./BrazilMap";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  LineChart,
+  Line,
+} from "recharts";
 import { Users, Hospital, UserCheck, Activity } from "lucide-react";
-import { mockKPIData, mockDiseaseData, mockSpecialtyData, mockMonthlyData } from "@/data/mockData";
+import {
+  mockKPIData,
+  mockDiseaseData,
+  mockSpecialtyData,
+  mockMonthlyData,
+} from "@/data/mockData";
 
-const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
+const COLORS = [
+  "hsl(var(--chart-1))",
+  "hsl(var(--chart-2))",
+  "hsl(var(--chart-3))",
+  "hsl(var(--chart-4))",
+  "hsl(var(--chart-5))",
+];
 
 export const OverviewView = () => {
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-3xl font-bold text-foreground mb-2">Visão Geral do Sistema</h2>
-        <p className="text-muted-foreground">Panorama nacional da saúde brasileira</p>
+        <h2 className="text-3xl font-bold text-foreground mb-2">
+          Visão Geral do Sistema
+        </h2>
+        <p className="text-muted-foreground">
+          Panorama nacional da saúde brasileira
+        </p>
       </div>
 
       {/* KPI Cards */}
@@ -50,7 +78,7 @@ export const OverviewView = () => {
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <BrazilMap />
-        
+
         <ChartCard title="Principais Doenças (CID-10)">
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
@@ -59,13 +87,18 @@ export const OverviewView = () => {
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                label={({ name, percent }) =>
+                  `${name} ${(percent * 100).toFixed(0)}%`
+                }
                 outerRadius={80}
                 fill="#8884d8"
                 dataKey="value"
               >
                 {mockDiseaseData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={COLORS[index % COLORS.length]}
+                  />
                 ))}
               </Pie>
               <Tooltip />
@@ -80,7 +113,12 @@ export const OverviewView = () => {
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={mockSpecialtyData}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="specialty" angle={-45} textAnchor="end" height={80} />
+              <XAxis
+                dataKey="specialty"
+                angle={-45}
+                textAnchor="end"
+                height={80}
+              />
               <YAxis />
               <Tooltip />
               <Bar dataKey="doctors" fill="hsl(var(--chart-1))" />
@@ -95,7 +133,12 @@ export const OverviewView = () => {
               <XAxis dataKey="month" />
               <YAxis />
               <Tooltip />
-              <Line type="monotone" dataKey="patients" stroke="hsl(var(--chart-1))" strokeWidth={3} />
+              <Line
+                type="monotone"
+                dataKey="patients"
+                stroke="hsl(var(--chart-1))"
+                strokeWidth={3}
+              />
             </LineChart>
           </ResponsiveContainer>
         </ChartCard>

@@ -23,9 +23,6 @@ export const DashboardLayout = ({ children, activeView, onViewChange }: Dashboar
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-gradient-primary rounded-lg">
-                <MapPin className="h-6 w-6 text-white" />
-              </div>
               <div>
                 <h1 className="text-2xl font-bold text-foreground">Dashboard de Saúde</h1>
                 <p className="text-sm text-muted-foreground">Insights para Gestores de Saúde</p>
