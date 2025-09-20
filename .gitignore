@@ -419,3 +419,5 @@ FodyWeavers.xsd
 
 # Sonarqube local files
 .sonarqube
+/src/Hackathon.Premiersoft.API/Engines/Factory/FileReaderEngineFactory.cs
+/src/Hackathon.Premiersoft.API/appsettings.json
