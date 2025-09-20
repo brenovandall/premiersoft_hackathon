@@ -124,6 +124,10 @@ export const useS3MultipartUpload = () => {
 
         setProgress(prev => prev ? { ...prev, phase: 'uploading' } : null);
 
+        // Converter File para Uint8Array para compatibilidade com browser
+        const arrayBuffer = await file.arrayBuffer();
+        const uint8Array = new Uint8Array(arrayBuffer);
+
         // Preparar metadados
         const metadata = createMetadata(file, dataType, fileFormat, description);
 
@@ -131,7 +135,7 @@ export const useS3MultipartUpload = () => {
         const uploadCommand = new PutObjectCommand({
             Bucket: S3_CONFIG.bucketName,
             Key: key,
-            Body: file,
+            Body: uint8Array, // Usar Uint8Array ao invés de File
             ContentType: contentType,
             Metadata: metadata,
         });
