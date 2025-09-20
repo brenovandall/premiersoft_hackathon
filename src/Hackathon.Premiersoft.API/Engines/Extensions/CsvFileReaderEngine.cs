@@ -1,5 +1,6 @@
 ﻿using Hackathon.Premiersoft.API.Dto;
 using Hackathon.Premiersoft.API.Engines.Csv;
+using Hackathon.Premiersoft.API.Engines.Factory;
 using Hackathon.Premiersoft.API.Services;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.Globalization;
@@ -8,7 +9,7 @@ using System.Text;
 
 namespace Hackathon.Premiersoft.API.Engines.Extensions
 {
-    public class CsvFileReaderEngine : Factory.IFileReaderEngine
+    public class CsvFileReaderEngine : IFileReaderEngine
     {
         public string FileReaderProvider => Extensions.FileReaderProvider.CsvReaderProvider;
 
@@ -263,6 +264,11 @@ namespace Hackathon.Premiersoft.API.Engines.Extensions
                     ProcessedAt = DateTime.UtcNow
                 }
             };
+        }
+
+        public void Run(long importId)
+        {
+            throw new NotImplementedException();
         }
         private string NormalizeHeaderName(string headerName)
         {
