@@ -2,6 +2,9 @@ services:
   applicationdb:
     image: mcr.microsoft.com/mssql/server
 
+  messagebroker:
+    image: rabbitmq:management
+
   hackathon.premiersoft.api:
     image: ${DOCKER_REGISTRY-}hackathonpremiersoftapi
     build:
