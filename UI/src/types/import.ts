@@ -89,11 +89,8 @@ export interface FieldMapping {
   dataType: DataType;
 }
 
-// Tipo para dados do mapeamento DE > PARA
-export interface FieldMappingBackend {
-  de: string;  // Campo de origem no arquivo
-  para: string; // Campo de destino na tabela do banco
-}
+// Tipo para dados do mapeamento - formato simplificado: {campo_origem: 'campo_destino'}
+export type FieldMappingBackend = Record<string, string>;
 
 // Interface para dados que serão enviados ao backend após upload
 export interface BackendProcessingData {
@@ -101,7 +98,7 @@ export interface BackendProcessingData {
   fileName: string;
   dataType: DataType;
   fileFormat: FileFormat;
-  fieldMappings: FieldMappingBackend[];
+  fieldMappings: FieldMappingBackend;
   fileSize: number;
   bucketName: string;
   s3Key: string;

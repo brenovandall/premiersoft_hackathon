@@ -31,16 +31,10 @@ namespace Hackathon.Premiersoft.API.Controllers
             public string FileName { get; set; } = string.Empty;
             public string DataType { get; set; } = string.Empty;
             public string FileFormat { get; set; } = string.Empty;
-            public List<FieldMapping> FieldMappings { get; set; } = new List<FieldMapping>();
+            public Dictionary<string, string> FieldMappings { get; set; } = new Dictionary<string, string>();
             public long FileSize { get; set; }
             public string BucketName { get; set; } = string.Empty;
             public string S3Key { get; set; } = string.Empty;
-        }
-
-        public class FieldMapping
-        {
-            public string De { get; set; } = string.Empty;
-            public string Para { get; set; } = string.Empty;
         }
 
         public class UploadResponse
@@ -87,10 +81,11 @@ namespace Hackathon.Premiersoft.API.Controllers
                 
                 if (request.FieldMappings.Any())
                 {
-                    for (int i = 0; i < request.FieldMappings.Count; i++)
+                    int counter = 1;
+                    foreach (var mapping in request.FieldMappings)
                     {
-                        var mapping = request.FieldMappings[i];
-                        Console.WriteLine($"   {i + 1:D2}. {mapping.De} → {mapping.Para}");
+                        Console.WriteLine($"   {counter:D2}. {mapping.Key} → {mapping.Value}");
+                        counter++;
                     }
                 }
                 else
