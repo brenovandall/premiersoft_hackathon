@@ -14,10 +14,7 @@ namespace Hackathon.Premiersoft.API.Controllers
         {
             var csvReader = new CsvFileReaderEngine(); 
 
-            // Substitua pelo caminho do seu arquivo
-            string filePath = @"C:\Users\DELL\Downloads\estados.csv";
-
-            csvReader.Run(filePath);
+          
             // Add your CSV reading logic here
             return Ok("CSV data read successfully");
         }

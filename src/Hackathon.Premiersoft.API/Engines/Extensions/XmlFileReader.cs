@@ -19,11 +19,11 @@ namespace Hackathon.Premiersoft.API.Engines.Extensions
 
         public void Run(long importId)
         {
-            var import = _dbContext.Imports.FirstOrDefault(x => x.Id == importId);
+            //var import = _dbContext.Imports.FirstOrDefault(x => x.Id == importId);
 
-                var xml = File.ReadAllText(preSignedUrl);
-            var xmlParser = new XmlParser();
-            xmlParser.ParseXml(xml);
+            //    var xml = File.ReadAllText(preSignedUrl);
+            //var xmlParser = new XmlParser();
+            //xmlParser.ParseXml(xml);
         }
     }
 }

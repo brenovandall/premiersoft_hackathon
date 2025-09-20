@@ -52,7 +52,7 @@ namespace Hackathon.Premiersoft.API
         {
             services.AddScoped<IFileReaderEngineFactory, FileReaderEngineFactory>();
             services.AddScoped<IFileReaderEngine, ExcelFileReader>();
-            services.AddScoped<IFileReaderEngine, ExcelFileReaderEngine>();
+            //services.AddScoped<IFileReaderEngine, ExcelFileReaderEngine>();
             services.AddTransient<IDomainEventsDispatcher, DomainEventsDispatcher>();
 
             services.Scan(scan => scan.FromAssembliesOf(typeof(DependencyInjection))

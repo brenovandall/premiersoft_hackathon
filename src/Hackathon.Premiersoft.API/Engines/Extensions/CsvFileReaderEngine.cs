@@ -16,12 +16,12 @@ namespace Hackathon.Premiersoft.API.Engines.Extensions
             _options = options ?? new CsvReaderOptions();
         }
 
-        public void Run(string preSignedUrl)
+        public void Run(long preSignedUrl)
         {
             try
             {
-                var csvContent = File.ReadAllText(preSignedUrl, _options.Encoding);
-                var dataCsv = ParseCsvData(csvContent);
+                //var csvContent = File.ReadAllText(preSignedUrl, _options.Encoding);
+              //  var dataCsv = ParseCsvData(csvContent);
             }
             catch (Exception ex)
             {
