@@ -1,8 +1,10 @@
 using Hackathon.Premiersoft.API;
+using Hackathon.Premiersoft.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddServices(builder.Configuration);
+builder.Services.AddSingleton<S3Service>();
 
 // Adicionar CORS de forma mais explícita
 builder.Services.AddCors(options =>

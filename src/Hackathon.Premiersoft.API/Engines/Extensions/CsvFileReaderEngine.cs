@@ -1,6 +1,9 @@
 ﻿using Hackathon.Premiersoft.API.Dto;
 using Hackathon.Premiersoft.API.Engines.Csv;
+using Hackathon.Premiersoft.API.Services;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.Globalization;
+using System.IO;
 using System.Text;
 
 namespace Hackathon.Premiersoft.API.Engines.Extensions
@@ -18,10 +21,14 @@ namespace Hackathon.Premiersoft.API.Engines.Extensions
 
         public void Run(long preSignedUrl)
         {
+            string key = "uploads/municipios/2025-09-20/1758407824810-municipios.csv";
+
             try
             {
-                //var csvContent = File.ReadAllText(preSignedUrl, _options.Encoding);
-              //  var dataCsv = ParseCsvData(csvContent);
+                Task.Run(async () =>
+                {
+                    await ProcessarArquivoEmBackground(key);
+                });
             }
             catch (Exception ex)
             {
@@ -36,33 +43,91 @@ namespace Hackathon.Premiersoft.API.Engines.Extensions
                         ProcessedAt = DateTime.UtcNow
                     }
                 };
-
             }
         }
 
-        private CsvMappedData ParseCsvData(string csvContent)
+        private async Task ProcessarArquivoEmBackground(string key)
         {
-            var lines = SplitLines(csvContent);
+            try
+            {
+                var s3Service = new S3Service();
+                using var reader = await s3Service.ObterLeitorDoArquivoAsync(key);
 
-            if (!lines.Any())
+                var csvData = await ParseCsvDataAsync(reader);
+
+                // Aqui você pode tratar os dados carregados do CSV como desejar
+                Console.WriteLine($"Linhas processadas: {csvData.Rows.Count}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao processar arquivo em background: {ex.Message}");
+            }
+        }
+
+        private async Task<CsvMappedData> ParseCsvDataAsync(TextReader reader)
+        {
+            var headers = new List<CsvHeader>();
+            var rows = new List<CsvRow>();
+
+            string headerLine = await reader.ReadLineAsync();
+            if (string.IsNullOrEmpty(headerLine))
             {
                 return CreateEmptyResult("Arquivo CSV vazio");
             }
 
-            var headers = ParseHeaders(lines[0]);
+            headers = ParseHeaders(headerLine);
 
             if (!headers.Any())
             {
                 return CreateEmptyResult("Nenhum cabeçalho válido encontrado.");
             }
 
-            var rows = ParseRows(lines.Skip(1).ToArray(), headers);
+            var columnMapping = CreateColumnMapping(headers);
+
+            int lineIndex = 0;
+            string line;
+            while ((line = await reader.ReadLineAsync()) != null)
+            {
+                if (string.IsNullOrWhiteSpace(line))
+                    continue;
+
+                var values = SplitCsvLine(line);
+
+                if (values.All(v => string.IsNullOrWhiteSpace(v)))
+                    continue;
+
+                var rowData = new Dictionary<string, object>();
+                var rawValues = new List<string>();
+
+                for (int i = 0; i < headers.Count; i++)
+                {
+                    var value = i < values.Count ? values[i] : "";
+                    var header = headers[i];
+
+                    rawValues.Add(value);
+
+                    var convertedValue = ConvertValue(value, header);
+                    rowData[header.NormalizedName] = convertedValue;
+
+                    if (header.InferredType == typeof(string) && !string.IsNullOrEmpty(value))
+                    {
+                        header.InferredType = InferType(value);
+                    }
+                }
+
+                rows.Add(new CsvRow
+                {
+                    Index = lineIndex++,
+                    Data = rowData,
+                    RawValues = rawValues
+                });
+            }
 
             return new CsvMappedData
             {
                 Headers = headers,
                 Rows = rows,
-                ColumnMapping = CreateColumnMapping(headers),
+                ColumnMapping = columnMapping,
                 Metadata = new CsvMetadata
                 {
                     TotalRows = rows.Count,
@@ -71,13 +136,6 @@ namespace Hackathon.Premiersoft.API.Engines.Extensions
                     ValidationErrors = new List<string>()
                 }
             };
-        }
-
-        private List<string> SplitLines(string csvContent)
-        {
-            return csvContent
-                .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
-                .ToList();
         }
 
         private List<CsvHeader> ParseHeaders(string headerLine)
@@ -109,51 +167,6 @@ namespace Hackathon.Premiersoft.API.Engines.Extensions
             }
 
             return headers;
-        }
-
-        private List<CsvRow> ParseRows(string[] dataLines, List<CsvHeader> headers)
-        {
-            var rows = new List<CsvRow>();
-
-            for (int lineIndex = 0; lineIndex < dataLines.Length; lineIndex++)
-            {
-                var line = dataLines[lineIndex];
-                if (string.IsNullOrWhiteSpace(line))
-                    continue;
-
-                var values = SplitCsvLine(line);
-
-                if (values.All(v => string.IsNullOrWhiteSpace(v)))
-                    continue;
-
-                var rowData = new Dictionary<string, object>();
-                var rawValues = new List<string>();
-
-                for (int i = 0; i < headers.Count; i++)
-                {
-                    var value = i < values.Count ? values[i] : "";
-                    var header = headers[i];
-
-                    rawValues.Add(value);
-
-                    var convertedValue = ConvertValue(value, header);
-                    rowData[header.NormalizedName] = convertedValue;
-
-                    if (header.InferredType == typeof(string) && !string.IsNullOrEmpty(value))
-                    {
-                        header.InferredType = InferType(value);
-                    }
-                }
-
-                rows.Add(new CsvRow
-                {
-                    Index = lineIndex,
-                    Data = rowData,
-                    RawValues = rawValues
-                });
-            }
-
-            return rows;
         }
 
         private List<string> SplitCsvLine(string line)
@@ -191,14 +204,6 @@ namespace Hackathon.Premiersoft.API.Engines.Extensions
 
             result.Add(current.ToString());
             return result;
-        }
-
-        private string NormalizeHeaderName(string headerName)
-        {
-            return headerName
-                .Replace(" ", "_")
-                .Replace("-", "_")
-                .ToLowerInvariant();
         }
 
         private Dictionary<string, int> CreateColumnMapping(List<CsvHeader> headers)
@@ -258,6 +263,18 @@ namespace Hackathon.Premiersoft.API.Engines.Extensions
                     ProcessedAt = DateTime.UtcNow
                 }
             };
+        }
+        private string NormalizeHeaderName(string headerName)
+        {
+            return headerName
+                .Replace(" ", "_")
+                .Replace("-", "_")
+                .ToLowerInvariant();
+        }
+        private List<CsvRow> ParseRows(string[] dataLines, List<CsvHeader> headers)
+        {
+            // Este método não é mais usado com a versão streaming, pode ser removido se quiser
+            throw new NotImplementedException("Use ParseCsvDataAsync para leitura por stream.");
         }
     }
 }
