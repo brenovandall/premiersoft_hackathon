@@ -4,6 +4,6 @@
     {
         string FileReaderProvider { get; }
 
-        void Run(string preSignedUrl);
+        void Run(long importId);
     }
 }

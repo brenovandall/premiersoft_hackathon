@@ -1,12 +1,12 @@
 ﻿using Hackathon.Premiersoft.API.Engines.Factory;
 
-namespace Hackathon.Premiersoft.API.Engines
+namespace Hackathon.Premiersoft.API.Engines.Extensions
 {
-    public class ExcelFileReaderEngine : IFileReaderEngine
+    public class ExcelFileReader : IFileReaderEngine
     {
         public string FileReaderProvider => Extensions.FileReaderProvider.ExcelReaderProvider;
 
-        public void Run(string preSignedUrl)
+        public void Run(long importId)
         {
             throw new NotImplementedException();
         }
