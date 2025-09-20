@@ -285,6 +285,20 @@ const ImportForm = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
+      {/* Aviso de integração */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="flex items-center space-x-2">
+          <div className="text-blue-600">�</div>
+          <div>
+            <h3 className="text-sm font-medium text-blue-800">Sistema Integrado</h3>
+            <p className="text-xs text-blue-700 mt-1">
+              Upload real para S3 + Envio dos dados e mapeamentos para o backend via POST. 
+              Verifique o console do backend para ver os dados recebidos.
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Header com progresso */}
       <div className="text-center">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
@@ -501,12 +515,17 @@ const ImportForm = () => {
             {/* Informações do processamento */}
             <div className="mt-4 space-y-3">
               <div className="bg-white rounded-lg p-3 border">
-                <h4 className="font-medium text-gray-900 mb-2">Status do Processamento</h4>
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-medium text-gray-900">Status do Processamento</h4>
+                  <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                    � Integrado
+                  </span>
+                </div>
                 
                 {isSendingToBackend && (
                   <div className="flex items-center space-x-2">
                     <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
-                    <span className="text-sm text-gray-600">Enviando dados para processamento...</span>
+                    <span className="text-sm text-gray-600">Enviando dados para o backend...</span>
                   </div>
                 )}
 
@@ -514,7 +533,12 @@ const ImportForm = () => {
                   <div className="space-y-2">
                     <div className="flex items-center space-x-2">
                       <CheckCircle className="h-4 w-4 text-green-600" />
-                      <span className="text-sm text-green-800">Arquivo enviado para processamento com sucesso!</span>
+                      <span className="text-sm text-green-800">Dados enviados com sucesso para o backend!</span>
+                    </div>
+                    
+                    <div className="text-xs text-green-600 bg-green-50 p-2 rounded">
+                      ✅ <strong>Integração Ativa:</strong> Os dados foram enviados via POST para o backend. 
+                      Verifique o console do backend para ver os dados recebidos e processados.
                     </div>
                     
                     {backendResponse.data?.processingId && (
