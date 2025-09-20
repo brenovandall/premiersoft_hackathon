@@ -5,10 +5,21 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useS3MultipartUpload } from "@/hooks/useS3MultipartUpload";
+import { DataTypeSelector } from "./DataTypeSelector";
+import { FieldMappingComponent } from "./FieldMappingComponent";
+import { FileHeaderReader } from "@/utils/fileHeaderReader";
+import { DataType, FieldMapping, FileHeader, TABLE_SCHEMAS } from "@/types/import";
+
+type UploadStep = "select-file" | "select-type" | "map-fields" | "upload";
 
 const ImportForm = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedDataType, setSelectedDataType] = useState<DataType | undefined>(undefined);
+  const [fileHeader, setFileHeader] = useState<FileHeader | null>(null);
+  const [fieldMappings, setFieldMappings] = useState<FieldMapping[]>([]);
+  const [currentStep, setCurrentStep] = useState<UploadStep>("select-file");
   const [error, setError] = useState<string>("");
+  const [isReadingHeader, setIsReadingHeader] = useState(false);
 
   const { 
     uploadFile, 
@@ -18,7 +29,7 @@ const ImportForm = () => {
     reset
   } = useS3MultipartUpload();
 
-  const onDrop = (acceptedFiles: File[]) => {
+  const onDrop = async (acceptedFiles: File[]) => {
     setError("");
     if (acceptedFiles.length > 0) {
       const file = acceptedFiles[0];
@@ -44,7 +55,38 @@ const ImportForm = () => {
       }
 
       setSelectedFile(file);
+      setCurrentStep("select-type");
     }
+  };
+
+  const handleDataTypeSelect = async (dataType: DataType) => {
+    setSelectedDataType(dataType);
+    
+    if (!selectedFile) return;
+    
+    // Verificar se o arquivo suporta leitura de cabeçalho
+    const fileName = selectedFile.name.toLowerCase();
+    if (fileName.endsWith('.csv') || fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+      setIsReadingHeader(true);
+      try {
+        const header = await FileHeaderReader.readFileHeader(selectedFile);
+        setFileHeader(header);
+        setCurrentStep("map-fields");
+      } catch (error) {
+        console.error("Erro ao ler cabeçalho:", error);
+        setError(error instanceof Error ? error.message : "Erro ao ler cabeçalho do arquivo");
+        setCurrentStep("upload"); // Pular mapeamento se não conseguir ler cabeçalho
+      } finally {
+        setIsReadingHeader(false);
+      }
+    } else {
+      // Para outros tipos de arquivo, pular mapeamento
+      setCurrentStep("upload");
+    }
+  };
+
+  const handleMappingComplete = () => {
+    setCurrentStep("upload");
   };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -63,21 +105,64 @@ const ImportForm = () => {
   });
 
   const handleUpload = async () => {
-    if (!selectedFile) return;
+    if (!selectedFile || !selectedDataType) return;
 
     try {
       setError("");
-      await uploadFile(selectedFile, "manual-import", "csv", "Upload manual via interface");
+      const fileFormat = getFileFormat(selectedFile.name);
+      const description = `Upload de ${selectedDataType} - ${fieldMappings.length} campos mapeados`;
+      
+      await uploadFile(selectedFile, selectedDataType, fileFormat, description);
     } catch (err) {
       console.error("Erro no upload:", err);
       setError(err instanceof Error ? err.message : "Erro no upload do arquivo");
     }
   };
 
-  const handleRemoveFile = () => {
+  const getFileFormat = (fileName: string): string => {
+    const extension = fileName.toLowerCase().split('.').pop();
+    switch (extension) {
+      case 'xlsx':
+      case 'xls':
+        return 'xlsx';
+      case 'csv':
+        return 'csv';
+      case 'xml':
+        return 'xml';
+      default:
+        return 'csv';
+    }
+  };
+
+  const handleReset = () => {
     setSelectedFile(null);
+    setSelectedDataType(undefined);
+    setFileHeader(null);
+    setFieldMappings([]);
+    setCurrentStep("select-file");
     setError("");
-    reset(); // Reset do estado do upload
+    reset();
+  };
+
+  const handleBack = () => {
+    switch (currentStep) {
+      case "select-type":
+        setCurrentStep("select-file");
+        setSelectedFile(null);
+        break;
+      case "map-fields":
+        setCurrentStep("select-type");
+        setFileHeader(null);
+        setFieldMappings([]);
+        break;
+      case "upload":
+        if (fileHeader) {
+          setCurrentStep("map-fields");
+        } else {
+          setCurrentStep("select-type");
+        }
+        break;
+    }
   };
 
   const getProgressText = () => {
@@ -139,43 +224,71 @@ const ImportForm = () => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-6 space-y-6">
+    <div className="max-w-4xl mx-auto p-6 space-y-6">
+      {/* Header com progresso */}
       <div className="text-center">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
           Importação de Dados
         </h2>
         <p className="text-gray-600">
-          Faça upload de arquivos CSV, JSON, XML ou Excel para importar dados
+          Faça upload de arquivos CSV, XML ou Excel para importar dados
         </p>
-      </div>
-
-      <div
-        {...getRootProps()}
-        className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-          isDragActive
-            ? "border-blue-400 bg-blue-50"
-            : "border-gray-300 hover:border-gray-400"
-        }`}
-      >
-        <input {...getInputProps()} />
-        <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-        {isDragActive ? (
-          <p className="text-blue-600">Solte o arquivo aqui...</p>
-        ) : (
-          <div>
-            <p className="text-gray-600 mb-2">
-              Clique para selecionar ou arraste um arquivo aqui
-            </p>
-            <p className="text-sm text-gray-400">
-              CSV, JSON, XML, Excel (máx. 5GB)
-            </p>
+        
+        {/* Indicador de progresso */}
+        <div className="flex items-center justify-center mt-4 space-x-4">
+          <div className={`flex items-center space-x-2 ${currentStep === "select-file" ? "text-blue-600" : currentStep === "select-type" || currentStep === "map-fields" || currentStep === "upload" ? "text-green-600" : "text-gray-400"}`}>
+            <div className={`w-3 h-3 rounded-full ${currentStep === "select-file" ? "bg-blue-600" : currentStep === "select-type" || currentStep === "map-fields" || currentStep === "upload" ? "bg-green-600" : "bg-gray-400"}`} />
+            <span className="text-sm font-medium">Arquivo</span>
           </div>
-        )}
+          <div className={`w-8 h-0.5 ${currentStep === "select-type" || currentStep === "map-fields" || currentStep === "upload" ? "bg-green-600" : "bg-gray-300"}`} />
+          <div className={`flex items-center space-x-2 ${currentStep === "select-type" ? "text-blue-600" : currentStep === "map-fields" || currentStep === "upload" ? "text-green-600" : "text-gray-400"}`}>
+            <div className={`w-3 h-3 rounded-full ${currentStep === "select-type" ? "bg-blue-600" : currentStep === "map-fields" || currentStep === "upload" ? "bg-green-600" : "bg-gray-400"}`} />
+            <span className="text-sm font-medium">Tipo</span>
+          </div>
+          <div className={`w-8 h-0.5 ${currentStep === "map-fields" || currentStep === "upload" ? "bg-green-600" : "bg-gray-300"}`} />
+          <div className={`flex items-center space-x-2 ${currentStep === "map-fields" ? "text-blue-600" : currentStep === "upload" ? "text-green-600" : "text-gray-400"}`}>
+            <div className={`w-3 h-3 rounded-full ${currentStep === "map-fields" ? "bg-blue-600" : currentStep === "upload" ? "bg-green-600" : "bg-gray-400"}`} />
+            <span className="text-sm font-medium">Mapeamento</span>
+          </div>
+          <div className={`w-8 h-0.5 ${currentStep === "upload" ? "bg-green-600" : "bg-gray-300"}`} />
+          <div className={`flex items-center space-x-2 ${currentStep === "upload" ? "text-blue-600" : "text-gray-400"}`}>
+            <div className={`w-3 h-3 rounded-full ${currentStep === "upload" ? "bg-blue-600" : "bg-gray-400"}`} />
+            <span className="text-sm font-medium">Upload</span>
+          </div>
+        </div>
       </div>
 
-      {selectedFile && (
-        <div className="bg-gray-50 rounded-lg p-4">
-          <div className="flex items-center justify-between">
+      {/* Step 1: Seleção de arquivo */}
+      {currentStep === "select-file" && (
+        <div
+          {...getRootProps()}
+          className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+            isDragActive
+              ? "border-blue-400 bg-blue-50"
+              : "border-gray-300 hover:border-gray-400"
+          }`}
+        >
+          <input {...getInputProps()} />
+          <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+          {isDragActive ? (
+            <p className="text-blue-600">Solte o arquivo aqui...</p>
+          ) : (
+            <div>
+              <p className="text-gray-600 mb-2">
+                Clique para selecionar ou arraste um arquivo aqui
+              </p>
+              <p className="text-sm text-gray-400">
+                CSV, JSON, XML, Excel (máx. 5GB)
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Step 2: Seleção do tipo de dados */}
+      {currentStep === "select-type" && selectedFile && (
+        <div className="space-y-6">
+          <div className="bg-gray-50 rounded-lg p-4">
             <div className="flex items-center space-x-3">
               <FileText className="h-8 w-8 text-blue-600" />
               <div>
@@ -183,60 +296,128 @@ const ImportForm = () => {
                 <p className="text-sm text-gray-500">
                   {formatFileSize(selectedFile.size)}
                 </p>
-                {getUploadTypeIndicator()}
               </div>
             </div>
-            
-            {!isUploading && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleRemoveFile}
-              >
-                Remover
-              </Button>
-            )}
           </div>
 
-          {isUploading && (
-            <div className="mt-4 space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">{getProgressText()}</span>
-                <span className="text-gray-900 font-medium">{progress?.percentage || 0}%</span>
-              </div>
-              <Progress value={progress?.percentage || 0} className="w-full" />
-              
-              <div className="flex items-center space-x-2 text-xs text-gray-500">
-                <div className={`w-2 h-2 rounded-full ${progress?.phase === 'reading' ? 'bg-blue-500' : 'bg-gray-300'}`} />
-                <span>Preparando</span>
-                <div className={`w-2 h-2 rounded-full ${progress?.phase === 'uploading' ? 'bg-blue-500' : progress?.phase === 'completing' ? 'bg-green-500' : 'bg-gray-300'}`} />
-                <span>Enviando</span>
-                <div className={`w-2 h-2 rounded-full ${progress?.phase === 'completing' ? 'bg-blue-500' : progress?.percentage === 100 ? 'bg-green-500' : 'bg-gray-300'}`} />
-                <span>Finalizando</span>
-              </div>
-            </div>
-          )}
+          <DataTypeSelector
+            value={selectedDataType}
+            onChange={handleDataTypeSelect}
+            disabled={isReadingHeader}
+          />
 
-          {!isUploading && (
-            <div className="mt-4">
-              <Button onClick={handleUpload} className="w-full" size="lg">
-                <Upload className="w-4 h-4 mr-2" />
-                Iniciar Upload
-              </Button>
-            </div>
-          )}
-
-          {isUploading && (
-            <div className="mt-4 flex items-center justify-center">
-              <Loader2 className="h-5 w-5 animate-spin mr-2" />
+          {isReadingHeader && (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin mr-2" />
               <span className="text-sm text-gray-600">
-                Upload em progresso...
+                Lendo cabeçalho do arquivo...
               </span>
             </div>
           )}
+
+          <div className="flex justify-between">
+            <Button variant="outline" onClick={handleBack}>
+              Voltar
+            </Button>
+          </div>
         </div>
       )}
 
+      {/* Step 3: Mapeamento de campos */}
+      {currentStep === "map-fields" && fileHeader && selectedDataType && (
+        <div className="space-y-6">
+          <FieldMappingComponent
+            fileHeader={fileHeader}
+            selectedDataType={selectedDataType}
+            onMappingChange={setFieldMappings}
+            onComplete={handleMappingComplete}
+          />
+
+          <div className="flex justify-between">
+            <Button variant="outline" onClick={handleBack}>
+              Voltar
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Step 4: Upload */}
+      {currentStep === "upload" && selectedFile && selectedDataType && (
+        <div className="space-y-6">
+          <div className="bg-gray-50 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <FileText className="h-8 w-8 text-blue-600" />
+                <div>
+                  <p className="font-medium text-gray-900">{selectedFile.name}</p>
+                  <p className="text-sm text-gray-500">
+                    {formatFileSize(selectedFile.size)} • {TABLE_SCHEMAS[selectedDataType].label}
+                  </p>
+                  {fieldMappings.length > 0 && (
+                    <p className="text-xs text-blue-600">
+                      {fieldMappings.length} campos mapeados
+                    </p>
+                  )}
+                  {getUploadTypeIndicator()}
+                </div>
+              </div>
+              
+              {!isUploading && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleReset}
+                >
+                  Remover
+                </Button>
+              )}
+            </div>
+
+            {isUploading && (
+              <div className="mt-4 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">{getProgressText()}</span>
+                  <span className="text-gray-900 font-medium">{progress?.percentage || 0}%</span>
+                </div>
+                <Progress value={progress?.percentage || 0} className="w-full" />
+                
+                <div className="flex items-center space-x-2 text-xs text-gray-500">
+                  <div className={`w-2 h-2 rounded-full ${progress?.phase === 'reading' ? 'bg-blue-500' : 'bg-gray-300'}`} />
+                  <span>Preparando</span>
+                  <div className={`w-2 h-2 rounded-full ${progress?.phase === 'uploading' ? 'bg-blue-500' : progress?.phase === 'completing' ? 'bg-green-500' : 'bg-gray-300'}`} />
+                  <span>Enviando</span>
+                  <div className={`w-2 h-2 rounded-full ${progress?.phase === 'completing' ? 'bg-blue-500' : progress?.percentage === 100 ? 'bg-green-500' : 'bg-gray-300'}`} />
+                  <span>Finalizando</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-between">
+            <Button variant="outline" onClick={handleBack}>
+              Voltar
+            </Button>
+            
+            {!isUploading && (
+              <Button onClick={handleUpload} size="lg">
+                <Upload className="w-4 h-4 mr-2" />
+                Iniciar Upload
+              </Button>
+            )}
+
+            {isUploading && (
+              <div className="flex items-center">
+                <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                <span className="text-sm text-gray-600">
+                  Upload em progresso...
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Mensagens de erro */}
       {(error || uploadError) && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
@@ -246,6 +427,7 @@ const ImportForm = () => {
         </Alert>
       )}
 
+      {/* Mensagem de sucesso */}
       {progress?.percentage === 100 && !error && !uploadError && (
         <Alert className="border-green-200 bg-green-50">
           <div className="flex items-center">
@@ -257,9 +439,10 @@ const ImportForm = () => {
         </Alert>
       )}
 
+      {/* Footer com informações */}
       <div className="text-center text-sm text-gray-500">
         <p>
-          Arquivos suportados: CSV, JSON, XML, Excel (.xls, .xlsx), TXT
+          Arquivos suportados: CSV, XML, Excel (.xls, .xlsx)
         </p>
         <p>
           Tamanho máximo: 5GB | Upload multipart automático para arquivos grandes

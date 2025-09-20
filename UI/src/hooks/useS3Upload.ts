@@ -80,7 +80,7 @@ export const useS3Upload = () => {
 
       // Validar formatos de arquivo permitidos
       const fileName = file.name.toLowerCase();
-      const allowedExtensions = ['.csv', '.xml', '.json', '.xlsx', '.xls'];
+      const allowedExtensions = ['.csv', '.xml', '.xlsx', '.xls'];
       const hasValidExtension = allowedExtensions.some(ext => fileName.endsWith(ext));
       
       if (!hasValidExtension) {
@@ -104,8 +104,6 @@ export const useS3Upload = () => {
             return lowerFileName.endsWith('.csv') || lowerFileName.endsWith('.xlsx') || lowerFileName.endsWith('.xls');
           case 'xml':
             return lowerFileName.endsWith('.xml');
-          case 'json':
-            return lowerFileName.endsWith('.json');
           default:
             return false;
         }
@@ -220,8 +218,6 @@ export const useS3Upload = () => {
           contentType = 'text/csv';
         } else if (fileName.endsWith('.xml')) {
           contentType = 'application/xml';
-        } else if (fileName.endsWith('.json')) {
-          contentType = 'application/json';
         } else if (fileName.endsWith('.xlsx')) {
           contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
         } else if (fileName.endsWith('.xls')) {
