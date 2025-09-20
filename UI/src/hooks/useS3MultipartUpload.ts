@@ -110,8 +110,8 @@ export const useS3MultipartUpload = () => {
             const key = generateS3Key(dataType, file.name);
             const contentType = detectContentType(file);
 
-            console.log(`🚀 Iniciando upload: ${file.name} (${(file.size / 1024 / 1024).toFixed(1)}MB)`);
-            console.log(`⚡ Configuração otimizada: ${(chunkSize / 1024 / 1024)}MB por parte, ${maxConcurrent} uploads simultâneos, ~${estimatedParts} partes`);
+            console.log(`Iniciando upload: ${file.name} (${(file.size / 1024 / 1024).toFixed(1)}MB)`);
+            console.log(`Configuração otimizada: ${(chunkSize / 1024 / 1024)}MB por parte, ${maxConcurrent} uploads simultâneos, ~${estimatedParts} partes`);
 
             // Decidir entre upload simples ou multipart
             if (file.size >= MIN_MULTIPART_SIZE) {
@@ -148,7 +148,7 @@ export const useS3MultipartUpload = () => {
         fileFormat: string,
         description?: string
     ): Promise<UploadResult> => {
-        console.log('📤 Upload simples');
+        console.log('Upload simples');
 
         setProgress(prev => prev ? { ...prev, phase: 'uploading' } : null);
 
@@ -178,7 +178,7 @@ export const useS3MultipartUpload = () => {
             phase: 'completing'
         });
 
-        console.log('✅ Upload simples concluído');
+        console.log('Upload simples concluído');
 
         return {
             success: true,
@@ -204,7 +204,7 @@ export const useS3MultipartUpload = () => {
         chunkSize?: number,
         maxConcurrent?: number
     ): Promise<UploadResult> => {
-        console.log('🔄 Upload multipart');
+        console.log('Upload multipart');
 
         // Usar configurações otimizadas ou valores padrão
         const actualChunkSize = chunkSize || calculateOptimalChunkSize(file.size);
@@ -224,7 +224,7 @@ export const useS3MultipartUpload = () => {
             const createResponse = await s3Client.send(createCommand);
             uploadId = createResponse.UploadId!;
 
-            console.log(`📋 Upload multipart iniciado: ${uploadId}`);
+            console.log(`Upload multipart iniciado: ${uploadId}`);
 
             // 2. Calcular número de partes com novo chunk size
             const totalParts = Math.ceil(file.size / actualChunkSize);
@@ -236,8 +236,8 @@ export const useS3MultipartUpload = () => {
                 currentPart: 0
             } : null);
 
-            console.log(`📦 Dividindo em ${totalParts} partes de ${(actualChunkSize / 1024 / 1024).toFixed(1)}MB`);
-            console.log(`🚀 Usando ${actualMaxConcurrent} uploads simultâneos para máxima velocidade`);
+            console.log(`Dividindo em ${totalParts} partes de ${(actualChunkSize / 1024 / 1024).toFixed(1)}MB`);
+            console.log(`Usando ${actualMaxConcurrent} uploads simultâneos para máxima velocidade`);
 
             // 3. Upload das partes
             const parts = await uploadParts(file, key, uploadId, totalParts, actualChunkSize, actualMaxConcurrent);
@@ -256,7 +256,7 @@ export const useS3MultipartUpload = () => {
 
             const completeResponse = await s3Client.send(completeCommand);
 
-            console.log('✅ Upload multipart concluído');
+            console.log('Upload multipart concluído');
 
             setProgress({
                 loaded: file.size,
@@ -285,14 +285,14 @@ export const useS3MultipartUpload = () => {
             // Abortar upload em caso de erro
             if (uploadId) {
                 try {
-                    console.log('🚫 Abortando upload multipart...');
+                    console.log('Abortando upload multipart...');
                     await s3Client.send(new AbortMultipartUploadCommand({
                         Bucket: S3_CONFIG.bucketName,
                         Key: key,
                         UploadId: uploadId,
                     }));
                 } catch (abortError) {
-                    console.warn('⚠️ Erro ao abortar upload:', abortError);
+                    console.warn('Erro ao abortar upload:', abortError);
                 }
             }
             throw error;
