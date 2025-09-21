@@ -4,6 +4,6 @@ namespace Hackathon.Premiersoft.API.Engines.Interfaces
 {
     public interface IEntityFactory
     {
-        IEntity CreateEntity(IEntityDto dto);
+        void CreateEntity(IEntityDto dto);
     }
 }

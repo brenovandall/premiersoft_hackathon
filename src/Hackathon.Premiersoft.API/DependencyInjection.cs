@@ -53,6 +53,16 @@ namespace Hackathon.Premiersoft.API
         {
             services.AddScoped<IFileReaderEngineFactory, FileReaderEngineFactory>();
             services.AddScoped<IFileReaderEngine, ExcelFileReader>();
+            services.AddScoped<IXmlProcess, XmlProcess>();
+            services.AddScoped<IFileReaderEngine, XmlFileReader>();
+            services.AddScoped<IMunicipiosRepository, MunicipiosRepository>();
+            //services.AddScoped<IFileReaderEngine, ExcelFileReaderEngine>();
+            services.AddTransient<IDomainEventsDispatcher, DomainEventsDispatcher>();
+
+            services.Scan(scan => scan.FromAssembliesOf(typeof(DependencyInjection))
+                            .AddClasses(classes => classes.AssignableTo(typeof(IDomainEventHandler<>)), publicOnly: false)
+                            .AsImplementedInterfaces()
+                            .WithScopedLifetime());
 
             return services;
         }
