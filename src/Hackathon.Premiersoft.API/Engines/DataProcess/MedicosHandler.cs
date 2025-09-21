@@ -1,4 +1,7 @@
-﻿using Hackathon.Premiersoft.API.Engines.Interfaces;
+﻿using DocumentFormat.OpenXml.InkML;
+using Hackathon.Premiersoft.API.Data;
+using Hackathon.Premiersoft.API.Engines.DataProcess.Helpers;
+using Hackathon.Premiersoft.API.Engines.Interfaces;
 using Hackathon.Premiersoft.API.Models;
 using Hackathon.Premiersoft.API.Models.Abstractions;
 using Hackathon.Premiersoft.API.Repository;
@@ -11,11 +14,12 @@ namespace Hackathon.Premiersoft.API.Engines.DataProcess
     {
         private IMunicipiosRepository MunicipiosRepository { get; set; }
         private IRepository<LineError, Guid> ErrorLineRepo { get; set; }
-        private IRepository<Medicos, Guid> MedicosRepository { get; set; }
-
-        public MedicosHandler(IRepository<LineError, Guid> errorLineRepo, IMunicipiosRepository municipiosRepository, IRepository<Medicos, Guid> medicosRepository)
+        private readonly IRepository<Medicos, Guid> _medicosRepository;
+        private IPremiersoftHackathonDbContext Context { get; set; }
+        public MedicosHandler(IPremiersoftHackathonDbContext context, IRepository<LineError, Guid> errorLineRepo, IMunicipiosRepository municipiosRepository, IRepository<Medicos, Guid> medicosRepository)
         {
-            MedicosRepository = medicosRepository;
+            Context = context;
+            _medicosRepository = medicosRepository;
             MunicipiosRepository = municipiosRepository;
             ErrorLineRepo = errorLineRepo;
         }
@@ -29,13 +33,13 @@ namespace Hackathon.Premiersoft.API.Engines.DataProcess
                 var tag = dto.Campo;
                 var value = dto.Valor;
 
-                if (CheckTag(tag, nameof(medico.Especialidade)))
+                if (DataHelper.CheckCampo(tag, nameof(medico.Especialidade)))
                     medico.Especialidade = value;
 
-                if (CheckTag(tag, nameof(medico.Codigo)))
+                if (DataHelper.CheckCampo(tag, nameof(medico.Codigo)))
                     medico.Codigo = value;
 
-                if (CheckTag(tag, nameof(medico.Codigo_Municipio)))
+                if (DataHelper.CheckCampo(tag, nameof(medico.Codigo_Municipio)))
                 {
                     var municipio = MunicipiosRepository.GetByIbgeCode(value);
 
@@ -45,7 +49,9 @@ namespace Hackathon.Premiersoft.API.Engines.DataProcess
                     medico.MunicipioId = municipio.Id;
                 }
 
-                MedicosRepository.Add(medico);
+                var set = Context.Set<Medicos>();
+                set.Add(medico);
+                Context.SaveChanges();
             }
             catch (Exception ex)
             {
@@ -59,13 +65,10 @@ namespace Hackathon.Premiersoft.API.Engines.DataProcess
                     value: dto.Valor
                 );
 
-                ErrorLineRepo.Add(error);
+                var set = Context.Set<LineError>();
+                set.Add(error);
+                Context.SaveChanges();
             }
-        }
-
-        private bool CheckTag(string tag, string campo)
-        {
-            return tag == campo;
         }
     }
 }

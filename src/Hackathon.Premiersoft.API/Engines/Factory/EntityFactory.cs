@@ -13,12 +13,18 @@ namespace Hackathon.Premiersoft.API.Engines.Factory
         private IPacientesHandler PacientesHandler { get; set; }
         private IMedicosHandler MedicosHandler { get; set; }
         private IMuncipiosHandler MunicipiosHandler { get; set; }
+        private IEstadosHandler EstadosHandler { get; set; }
+        private IHospitaisHandler HospitaisHandler { get; set; }
+        private ICid10Handler Cid10Handler { get; set; }
 
-        public EntityFactory(IPacientesHandler pacientesHandler, IMedicosHandler medicosHandler, IMuncipiosHandler muncipiosHandler)
+        public EntityFactory(IPacientesHandler pacientesHandler, IMedicosHandler medicosHandler, IMuncipiosHandler muncipiosHandler, IEstadosHandler estadosHandler, IHospitaisHandler hospitaisHandler, ICid10Handler cid10Handler)
         {
             MedicosHandler = medicosHandler;
             PacientesHandler = pacientesHandler;
             MunicipiosHandler = muncipiosHandler;
+            EstadosHandler = estadosHandler;
+            HospitaisHandler = hospitaisHandler;
+            Cid10Handler = cid10Handler;
         }
 
         public void CreateEntity(IEntityDto dto)
@@ -32,15 +38,19 @@ namespace Hackathon.Premiersoft.API.Engines.Factory
                     MedicosHandler.ProcessarMedicos(dto);
                     break;
                 case ImportDataTypes.City:
-                    MedicosHandler.ProcessarMedicos(dto);
+                    MunicipiosHandler.ProcessarMuncipios(dto);
                     break;
-                    //case ImportDataTypes.State:
-                    //    return new Estados();
-                    //case ImportDataTypes.City:
-                    //    return new Municipios();
-                    //case ImportDataTypes.Doctor:
-                    //    return new Medicos();
-                    //    break;
+                case ImportDataTypes.State:
+                    EstadosHandler.ProcessarEstados(dto);
+                    break;
+                case ImportDataTypes.Hospital:
+                    HospitaisHandler.ProcessarHospitais(dto);
+                    break;
+                case ImportDataTypes.CidTable:
+                    Cid10Handler.ProcessarCid10(dto);
+                    break;
+                default:
+                    throw new Exception("Não foi encontrado o tipo do arquivo.");
             }
         }
     }

@@ -1,4 +1,5 @@
-﻿using Hackathon.Premiersoft.API.Engines.Interfaces;
+﻿using Hackathon.Premiersoft.API.Engines.DataProcess.Helpers;
+using Hackathon.Premiersoft.API.Engines.Interfaces;
 using Hackathon.Premiersoft.API.Models;
 using Hackathon.Premiersoft.API.Repository;
 using Hackathon.Premiersoft.API.Repository.MunicipiosRepo;
@@ -25,21 +26,21 @@ namespace Hackathon.Premiersoft.API.Engines.DataProcess
                 var tag = dto.Campo;
                 var value = dto.Valor;
 
-                if (CheckTag(tag, nameof(paciente.Cpf)))
+                if (DataHelper.CheckCampo(tag, nameof(paciente.Cpf)))
                     paciente.Cpf = value;
 
-                if (CheckTag(tag, nameof(paciente.Genero)))
+                if (DataHelper.CheckCampo(tag, nameof(paciente.Genero)))
                     paciente.Genero = value;
 
-                if (CheckTag(tag, nameof(paciente.Nome_completo)))
+                if (DataHelper.CheckCampo(tag, nameof(paciente.Nome_completo)))
                     paciente.Nome_completo = value;
 
-                if (CheckTag(tag, nameof(paciente.Convenio)))
+                if (DataHelper.CheckCampo(tag, nameof(paciente.Convenio)))
                     paciente.Convenio = bool.TryParse(value, out var convenio)
                         ? convenio
                         : throw new Exception("Valor inválido para convenio");
 
-                if (CheckTag(tag, nameof(paciente.Codigo_Municipio)))
+                if (DataHelper.CheckCampo(tag, nameof(paciente.Codigo_Municipio)))
                 {
                     var municipio = MunicipiosRepository.GetByIbgeCode(value);
 
@@ -49,7 +50,7 @@ namespace Hackathon.Premiersoft.API.Engines.DataProcess
                     paciente.Codigo_MunicipioId = municipio.Id;
                 }
 
-                if (CheckTag(tag, nameof(paciente.Cid10)))
+                if (DataHelper.CheckCampo(tag, nameof(paciente.Cid10)))
                 {
                     paciente.Cid10Id = Guid.TryParse(value, out var cid10Id)
                         ? cid10Id
@@ -74,11 +75,5 @@ namespace Hackathon.Premiersoft.API.Engines.DataProcess
             }
 
         }
-
-        private bool CheckTag(string tag, string campo)
-        {
-            return tag == campo;
-        }
-
     }
 }

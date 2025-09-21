@@ -1,37 +1,38 @@
 ﻿using Hackathon.Premiersoft.API.Data;
 using Hackathon.Premiersoft.API.Engines.Factory;
-using Hackathon.Premiersoft.API.Engines.Helpers;
 using Hackathon.Premiersoft.API.Engines.Interfaces;
-using Hackathon.Premiersoft.API.Engines.Xml;
 using Hackathon.Premiersoft.API.Models;
 using Hackathon.Premiersoft.API.Repository;
+using Hackathon.Premiersoft.API.Services;
+using System.Diagnostics;
 
 namespace Hackathon.Premiersoft.API.Engines.Extensions
 {
     public class XmlFileReader : IFileReaderEngine
     {
         private IRepository<Import, Guid> Import { get; set; }
-        private IXmlProcess XmlProcessEngine { get; set; }
-        private IEntityFactory EntityFactory { get; set; }
+        private IXmlParser XmlParser { get; set; }
         public string FileReaderProvider => Extensions.FileReaderProvider.XmlReaderProvider;
-        public XmlFileReader(IEntityFactory entityFactory, IXmlProcess xmlProcess, IRepository<Import, Guid> importsRepo)
+        public XmlFileReader(IRepository<Import, Guid> importsRepo, IXmlParser xmlParser)
         {
-            EntityFactory = entityFactory;
-            XmlProcessEngine = xmlProcess;
+            XmlParser = xmlParser;
             Import = importsRepo;
         }
 
-        public async void Run(Guid importId)
+        public async Task Run(Guid importId)
         {
+            var contador = new Stopwatch();
+            contador.Start();
+
             var import = Import.GetById(importId) ?? throw new Exception("Importação não encontrado!");
 
             if (string.IsNullOrEmpty(import.S3PreSignedUrl))
                 throw new Exception("URL do arquivo não encontrado!");
 
-            var xml = File.ReadAllText(import.S3PreSignedUrl);
-            var xmlParser = new XmlParser();
-            var parsedFiles = await xmlParser.ParseXmlAsync(import);
-            XmlProcessEngine.Process(parsedFiles);
+            await XmlParser.ParseXmlAsync(import);
+            contador.Stop();
+
+            Console.WriteLine($"Total segundos: {contador.Elapsed.Seconds.ToString()}");
         }
     }
 }

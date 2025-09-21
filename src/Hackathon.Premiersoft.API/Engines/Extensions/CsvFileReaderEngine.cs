@@ -1,19 +1,21 @@
-﻿using Hackathon.Premiersoft.API.Engines.Csv;
+﻿using Hackathon.Premiersoft.API.Dto;
+using Hackathon.Premiersoft.API.Engines.Csv;
+using Hackathon.Premiersoft.API.Engines.Factory;
 using Hackathon.Premiersoft.API.Services;
 using System;
 using System.Threading.Tasks;
 
 namespace Hackathon.Premiersoft.API.Engines.Extensions
 {
-    public class CsvFileReaderEngine : Factory.IFileReaderEngine
+    public class CsvFileReaderEngine : IFileReaderEngine
     {
         public string FileReaderProvider => "CsvFileReader";
 
-        public void Run(Guid importId)
+        public Task Run(Guid importId)
         {
             string key = "uploads/municipios/2025-09-20/1758407824810-municipios.csv";
 
-            Task.Run(async () =>
+            return Task.Run(async () =>
             {
                 try
                 {
@@ -39,7 +41,6 @@ namespace Hackathon.Premiersoft.API.Engines.Extensions
             // Este método não é mais usado com a versão streaming, pode ser removido se quiser
             throw new NotImplementedException("Use ParseCsvDataAsync para leitura por stream.");
             
-            });
         }
     }
 }

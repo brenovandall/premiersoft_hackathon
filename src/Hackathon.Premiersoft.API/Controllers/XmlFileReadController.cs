@@ -2,7 +2,6 @@
 using Hackathon.Premiersoft.API.Engines;
 using Hackathon.Premiersoft.API.Engines.Extensions;
 using Hackathon.Premiersoft.API.Engines.Factory;
-using Hackathon.Premiersoft.API.Engines.Xml;
 using Hackathon.Premiersoft.API.Models;
 using Hackathon.Premiersoft.API.Models.Enums;
 using Hackathon.Premiersoft.API.Repository;
@@ -22,37 +21,38 @@ namespace Hackathon.Premiersoft.API.Controllers
             ImportRepository = importRepo;
         }
 
-        [HttpGet]
         [HttpGet("ler")]
-        public IActionResult GetXmlData()
+        public async Task<IActionResult> GetXmlData()
         {
             try
             {
                 var import = Import.Create(
-                dataType: ImportDataTypes.City,
-                fileFormat: ImportFileFormat.Xml,
-                fileName: "pacientes_2025_09_20.xml",
-                s3PreSignedUrl: "uploads/municipios/2025-09-21/1758428070712-teste_municipios.xml",
-                totalRegisters: 2,
-                totalImportedRegisters: 110,
-                totalDuplicatedRegisters: 5,
-                totalFailedRegisters: 5,
-                importedOn: DateTime.UtcNow.AddMinutes(-30),
-                finishedOn: DateTime.UtcNow,
-                description: "Arquivo de importação de pacientes de setembro/2025");
+                    dataType: ImportDataTypes.City,
+                    fileFormat: ImportFileFormat.Xml,
+                    fileName: "pacientes_2025_09_20.xml",
+                    s3PreSignedUrl: "uploads/municipios/2025-09-21/1758440109201-teste_municipios.xml",
+                    totalRegisters: 2,
+                    totalImportedRegisters: 110,
+                    totalDuplicatedRegisters: 5,
+                    totalFailedRegisters: 5,
+                    importedOn: DateTime.UtcNow.AddMinutes(-30),
+                    finishedOn: DateTime.UtcNow
+                );
 
                 ImportRepository.Add(import);
 
                 var factory = Factory.CreateFactory(".xml");
-                factory.Run(Guid.NewGuid());
+
+                await factory.Run(import.Id); // make Run async too
+
+                return Ok("XML data read successfully");
             }
             catch (Exception ex)
             {
-                return Ok(ex.Message);
+                return BadRequest(ex.Message);
             }
-
-            return Ok("CSV data read successfully");
         }
+
 
         public class RespostaOk
         {

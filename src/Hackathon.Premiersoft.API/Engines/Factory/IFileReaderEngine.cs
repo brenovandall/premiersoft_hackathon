@@ -4,6 +4,6 @@
     {
         string FileReaderProvider { get; }
 
-        void Run(Guid importId);
+        Task Run(Guid importId);
     }
 }

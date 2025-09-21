@@ -5,14 +5,14 @@ using Hackathon.Premiersoft.API.Repository;
 
 namespace Hackathon.Premiersoft.API.Engines.Extensions
 {
-    public class ExcelFileReader : IFileReaderEngine
+    public class ExcelXlsFileReader : IFileReaderEngine
     {
         private IRepository<Import, Guid> Import { get; set; }
-        private IXlsxParser XlsxParser { get; set; }
-        public string FileReaderProvider => Extensions.FileReaderProvider.ExcelReaderProvider;
-        public ExcelFileReader(IRepository<Import, Guid> importsRepo, IXlsxParser xlsxParser)
+        private IXlsParser XlsParser { get; set; }
+        public string FileReaderProvider => Extensions.FileReaderProvider.XlsReaderProvider;
+        public ExcelXlsFileReader(IRepository<Import, Guid> importsRepo, IXlsParser xlsParser)
         {
-            XlsxParser = xlsxParser;
+            XlsParser = xlsParser;
             Import = importsRepo;
         }
 
@@ -23,7 +23,7 @@ namespace Hackathon.Premiersoft.API.Engines.Extensions
             if (string.IsNullOrEmpty(import.S3PreSignedUrl))
                 throw new Exception("URL do arquivo não encontrado!");
 
-            await XlsxParser.ParseXlsxAsync(import);
+            await XlsParser.ParseXlsAsync(import);
         }
     }
 }
