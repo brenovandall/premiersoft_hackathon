@@ -183,7 +183,7 @@ export const TABLE_SCHEMAS: Record<DataType, { label: string; fields: string[]; 
   },
   pacientes: {
     label: "Pacientes",
-    fields: ["codigo", "cpf", "nome_completo", "genero", "codigo_municipio", "bairro", "convenio", "cid10"],
+    fields: ["codigo", "cpf", "nome_completo", "genero", "codigo_municipio_id", "bairro", "convenio", "cid10_id"],
     description: "Cadastro de pacientes"
   },
   // Mantendo compatibilidade com os tipos existentes

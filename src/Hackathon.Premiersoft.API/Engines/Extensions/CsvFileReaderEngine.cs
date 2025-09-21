@@ -281,6 +281,7 @@ namespace Hackathon.Premiersoft.API.Engines.Extensions
                 Codigo = GetStringValue(row, "codigo") ?? throw new ArgumentException("Código é obrigatório"),
                 Nome = GetStringValue(row, "nome") ?? throw new ArgumentException("Nome é obrigatório"),
                 Bairro = GetStringValue(row, "bairro") ?? "",
+                Especialidades = GetStringValue(row, "especialidades") ?? throw new ArgumentException("Especialidade é obrigatória"),
                 Leitos_totais = GetLongValue(row, "leitos_totais") ?? 0
                 // Nota: Cidade será resolvida separadamente se necessário
             };
@@ -295,6 +296,7 @@ namespace Hackathon.Premiersoft.API.Engines.Extensions
                 Genero = GetStringValue(row, "genero") ?? "",
                 Nome_completo = GetStringValue(row, "nome_completo") ?? throw new ArgumentException("Nome completo é obrigatório"),
                 Convenio = GetBoolValue(row, "convenio") ?? false,
+                Bairro = GetStringValue(row, "bairro") ?? "",
                 Codigo_MunicipioId = GetGuidValue(row, "codigo_municipio_id") ?? throw new ArgumentException("ID do município é obrigatório"),
                 Cid10Id = GetGuidValue(row, "cid10_id") ?? throw new ArgumentException("ID do CID10 é obrigatório")
             };
