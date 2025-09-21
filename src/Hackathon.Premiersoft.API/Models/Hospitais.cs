@@ -2,7 +2,7 @@
 
 namespace Hackathon.Premiersoft.API.Models
 {
-    public class Hospitais : Entity<int>
+    public class Hospitais : Entity<long>
     {
         public string Codigo { get; set; }
         public string Nome { get; set; }

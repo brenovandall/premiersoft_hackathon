@@ -13,9 +13,6 @@ namespace Hackathon.Premiersoft.API.Models
         [Required]
         public ImportFileFormat FileFormat { get; private set; }
 
-        [MaxLength(255)]
-        public string? Description { get; private set; } = default!;
-
         [Required]
         [MaxLength(100)]
         public string FileName { get; private set; } = default!;
@@ -54,8 +51,7 @@ namespace Hackathon.Premiersoft.API.Models
             int? totalDuplicatedRegisters,
             int? totalFailedRegisters,
             DateTime importedOn,
-            DateTime? finishedOn = null,
-            string? description = null)
+            DateTime? finishedOn = null)
         {
             DataType = dataType;
             FileFormat = fileFormat;
@@ -68,7 +64,6 @@ namespace Hackathon.Premiersoft.API.Models
             TotalFailedRegisters = totalFailedRegisters;
             ImportedOn = importedOn;
             FinishedOn = finishedOn;
-            Description = description;
         }
 
         public static Import Create(
@@ -81,8 +76,7 @@ namespace Hackathon.Premiersoft.API.Models
             int? totalDuplicatedRegisters = 0,
             int? totalFailedRegisters = 0,
             DateTime? importedOn = null,
-            DateTime? finishedOn = null,
-            string? description = null)
+            DateTime? finishedOn = null)
         {
             var import = new Import(
                 dataType: dataType,
@@ -95,12 +89,16 @@ namespace Hackathon.Premiersoft.API.Models
                 totalDuplicatedRegisters: totalDuplicatedRegisters,
                 totalFailedRegisters: totalFailedRegisters,
                 importedOn: importedOn ?? DateTime.UtcNow,
-                finishedOn: finishedOn,
-                description: description);
+                finishedOn: finishedOn);
 
             import.Raise(new ImportFileEvent(import.S3PreSignedUrl, (int)import.FileFormat, import.Id));
 
             return import;
+        }
+
+        public void UpdateStatus(ImportStatus status)
+        {
+            Status = status;
         }
     }
 }

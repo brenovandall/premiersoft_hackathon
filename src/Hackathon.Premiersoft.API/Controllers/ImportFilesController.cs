@@ -1,4 +1,5 @@
 ﻿using Hackathon.Premiersoft.API.Dto;
+using Hackathon.Premiersoft.API.Models;
 using Hackathon.Premiersoft.API.Services.ImportFiles;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,6 +22,14 @@ namespace Hackathon.Premiersoft.API.Controllers
             await _importFilesService.Create(request, cancellationToken);
 
             return Created();
+        }
+
+        [HttpGet]
+        public ActionResult<IList<Import>> Get()
+        {
+            var imports = _importFilesService.GetAll();
+
+            return Ok(imports);
         }
     }
 }
