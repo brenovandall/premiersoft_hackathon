@@ -1,4 +1,5 @@
-﻿using Hackathon.Premiersoft.API.Models.Abstractions;
+﻿using Hackathon.Premiersoft.API.Messaging.Events;
+using Hackathon.Premiersoft.API.Models.Abstractions;
 using Hackathon.Premiersoft.API.Models.Enums;
 using System.ComponentModel.DataAnnotations;
 
@@ -25,22 +26,17 @@ namespace Hackathon.Premiersoft.API.Models
         [Required]
         public ImportStatus Status { get; private set; }
 
-        [Required]
         public int? TotalRegisters { get; private set; }
 
-        [Required]
         public int? TotalImportedRegisters { get; private set; }
 
-        [Required]
         public int? TotalDuplicatedRegisters { get; private set; }
 
-        [Required]
         public int? TotalFailedRegisters { get; private set; }
 
         [Required]
         public DateTime ImportedOn { get; private set; }
 
-        [Required]
         public DateTime? FinishedOn { get; private set; }
 
         public ICollection<LineError> LineErrors { get; private set; } = [];
@@ -51,6 +47,7 @@ namespace Hackathon.Premiersoft.API.Models
             ImportDataTypes dataType,
             ImportFileFormat fileFormat,
             string fileName,
+            string s3PreSignedUrl,
             ImportStatus status,
             int? totalRegisters,
             int? totalImportedRegisters,
@@ -63,6 +60,7 @@ namespace Hackathon.Premiersoft.API.Models
             DataType = dataType;
             FileFormat = fileFormat;
             FileName = fileName;
+            S3PreSignedUrl = s3PreSignedUrl;
             Status = status;
             TotalRegisters = totalRegisters;
             TotalImportedRegisters = totalImportedRegisters;
@@ -71,6 +69,38 @@ namespace Hackathon.Premiersoft.API.Models
             ImportedOn = importedOn;
             FinishedOn = finishedOn;
             Description = description;
+        }
+
+        public static Import Create(
+            ImportDataTypes dataType,
+            ImportFileFormat fileFormat,
+            string fileName,
+            string s3PreSignedUrl,
+            int? totalRegisters = 0,
+            int? totalImportedRegisters = 0,
+            int? totalDuplicatedRegisters = 0,
+            int? totalFailedRegisters = 0,
+            DateTime? importedOn = null,
+            DateTime? finishedOn = null,
+            string? description = null)
+        {
+            var import = new Import(
+                dataType: dataType,
+                fileFormat: fileFormat,
+                fileName: fileName,
+                s3PreSignedUrl: s3PreSignedUrl,
+                status: ImportStatus.Pending,
+                totalRegisters: totalRegisters,
+                totalImportedRegisters: totalImportedRegisters,
+                totalDuplicatedRegisters: totalDuplicatedRegisters,
+                totalFailedRegisters: totalFailedRegisters,
+                importedOn: importedOn ?? DateTime.UtcNow,
+                finishedOn: finishedOn,
+                description: description);
+
+            import.Raise(new ImportFileEvent(import.S3PreSignedUrl, (int)import.FileFormat, import.Id));
+
+            return import;
         }
     }
 }
