@@ -57,8 +57,12 @@ namespace Hackathon.Premiersoft.API.Engines.Extensions
         {
             try
             {
-                // Usa o parser existente mas modifica para processar registro por registro
+                // Usa o parser com a nova lógica de mapeamento
                 await _xmlParser.ParseXmlAsync(import);
+                
+                // Aqui você pode adicionar lógica adicional para salvar dados mapeados
+                // similar ao que é feito no CSV com o GenericDataInsertEngine
+                Console.WriteLine($"XML processado com sucesso para import {import.Id}");
             }
             catch (Exception ex)
             {

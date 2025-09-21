@@ -14,7 +14,7 @@ import {
   HealthResponse 
 } from '@/types/getdata';// Configuração da API GetData
 const GETDATA_API_CONFIG = {
-  baseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:6000/v1/ImportFiles',
+  baseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/v1/ImportFiles',
   timeout: 30000, // 30 segundos
 };
 

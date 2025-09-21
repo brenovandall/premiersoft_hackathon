@@ -4,6 +4,7 @@ using Hackathon.Premiersoft.API.Engines.DataProcess;
 using Hackathon.Premiersoft.API.Engines.Extensions;
 using Hackathon.Premiersoft.API.Engines.Factory;
 using Hackathon.Premiersoft.API.Engines.Interfaces;
+using Hackathon.Premiersoft.API.Engines.Parsers.Xml;
 using Hackathon.Premiersoft.API.Messaging.MassTransit;
 using Hackathon.Premiersoft.API.Models;
 using Hackathon.Premiersoft.API.Repository;
@@ -60,9 +61,14 @@ namespace Hackathon.Premiersoft.API
         {
             services.AddScoped<IFileReaderEngineFactory, FileReaderEngineFactory>();
             services.AddScoped<IFileReaderEngine, CsvFileReaderEngine>();
+            services.AddScoped<IFileReaderEngine, XmlFileReader>(); // Registrar XmlFileReader
 
             // Registrar o serviço de processamento de registros
             services.AddScoped<RecordProcessingService>();
+
+            // Registrar serviços S3 e XML
+            services.AddScoped<S3Service>();
+            services.AddScoped<IXmlParser, XmlParser>();
 
             services.AddScoped<IEntityFactory, EntityFactory>();
             services.AddScoped<IMunicipiosRepository, MunicipiosRepository>();
