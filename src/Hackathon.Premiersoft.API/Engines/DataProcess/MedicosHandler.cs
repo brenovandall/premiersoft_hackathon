@@ -42,7 +42,6 @@ namespace Hackathon.Premiersoft.API.Engines.DataProcess
                     if (municipio == null)
                         throw new Exception($"Município não encontrado para código IBGE {value}");
 
-                    medico.MunicipioId = municipio.Id;
                 }
 
                 MedicosRepository.Add(medico);

@@ -10,9 +10,7 @@ namespace Hackathon.Premiersoft.API.Models
         public string Nome_completo { get; set; }
         public string Especialidade { get; set; }
 
-        [Required]
-        public Guid MunicipioId { get; set; }
-        [ForeignKey(nameof(MunicipioId))]
+
         public Municipios Codigo_Municipio { get; set; }
 
         public ICollection<DoctorsHospitals> DoctorsHospitals { get; private set; } = [];

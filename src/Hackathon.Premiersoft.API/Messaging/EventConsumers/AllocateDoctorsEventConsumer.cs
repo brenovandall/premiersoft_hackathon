@@ -45,12 +45,6 @@ namespace Hackathon.Premiersoft.API.Messaging.EventConsumers
                     if (hospital.DoctorsHospitals.Any(dh => dh.DoctorId == doctor.Id))
                         continue;
 
-                    if (hospital.Cidade.Id == doctor.MunicipioId)
-                    {
-                        await _dbContext.DoctorsHospitals.AddAsync(new DoctorsHospitals(doctor.Id, hospital.Id));
-                        continue;
-                    }
-
                     var dist = GeoUtils.CalculateDistance(
                         (double)doctor.Codigo_Municipio.Latitude,
                         (double)doctor.Codigo_Municipio.Longitude,

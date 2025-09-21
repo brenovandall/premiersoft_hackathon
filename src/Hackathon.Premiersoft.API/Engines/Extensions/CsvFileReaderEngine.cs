@@ -270,7 +270,6 @@ namespace Hackathon.Premiersoft.API.Engines.Extensions
                 Codigo = GetStringValue(row, "codigo") ?? throw new ArgumentException("Código é obrigatório"),
                 Nome_completo = GetStringValue(row, "nome_completo") ?? throw new ArgumentException("Nome completo é obrigatório"),
                 Especialidade = GetStringValue(row, "especialidade") ?? throw new ArgumentException("Especialidade é obrigatória"),
-                MunicipioId = GetGuidValue(row, "municipio_id") ?? throw new ArgumentException("ID do município é obrigatório")
             };
         }
 
