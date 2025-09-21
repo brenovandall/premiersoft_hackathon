@@ -33,8 +33,8 @@ namespace Hackathon.Premiersoft.API
         {
             services.AddControllers();
 
-            //services.AddEndpointsApiExplorer();
-            //services.AddSwaggerGen();
+            services.AddEndpointsApiExplorer();
+            services.AddSwaggerGen();
 
             services.AddDatabaseServices(configuration)
                     .AddApplicationRulesServices();
