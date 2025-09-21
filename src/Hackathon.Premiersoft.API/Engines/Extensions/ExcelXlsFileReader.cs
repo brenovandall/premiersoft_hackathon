@@ -8,28 +8,28 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Hackathon.Premiersoft.API.Engines.Extensions
 {
-    public class ExcelFileReader : IFileReaderEngine
+    public class ExcelXlsFileReader : IFileReaderEngine
     {
         private readonly IRepository<Import, Guid> _importRepository;
-        private readonly IXlsxParser _xlsxParser;
+        private readonly IXlsParser _xlsParser;
         private readonly IPremiersoftHackathonDbContext _dbContext;
         private readonly RecordProcessingService _recordProcessingService;
 
-        public string FileReaderProvider => Extensions.FileReaderProvider.ExcelReaderProvider;
+        public string FileReaderProvider => Extensions.FileReaderProvider.XlsReaderProvider;
 
-        public ExcelFileReader(
+        public ExcelXlsFileReader(
             IRepository<Import, Guid> importsRepo, 
-            IXlsxParser xlsxParser,
+            IXlsParser xlsParser,
             IPremiersoftHackathonDbContext dbContext,
             RecordProcessingService recordProcessingService)
         {
-            _xlsxParser = xlsxParser;
+            _xlsParser = xlsParser;
             _importRepository = importsRepo;
             _dbContext = dbContext;
             _recordProcessingService = recordProcessingService;
         }
 
-        public void Run(Guid importId)
+        public async Task Run(Guid importId)
         {
             var import = await _dbContext.Imports.FirstOrDefaultAsync(i => i.Id == importId);
             if (import == null)
@@ -40,20 +40,20 @@ namespace Hackathon.Premiersoft.API.Engines.Extensions
             if (string.IsNullOrEmpty(import.S3PreSignedUrl))
                 throw new Exception("URL do arquivo não encontrado!");
 
-            // Processa o Excel usando o parser existente mas com nova lógica de salvamento
-            await ProcessExcelWithRecordByRecord(import);
+            // Processa o Excel XLS usando o parser existente mas com nova lógica de salvamento
+            await ProcessXlsWithRecordByRecord(import);
         }
 
-        private async Task ProcessExcelWithRecordByRecord(Import import)
+        private async Task ProcessXlsWithRecordByRecord(Import import)
         {
             try
             {
                 // Usa o parser existente mas modifica para processar registro por registro
-                await _xlsxParser.ParseXlsxAsync(import);
+                await _xlsParser.ParseXlsAsync(import);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erro ao processar Excel para import {import.Id}: {ex.Message}");
+                Console.WriteLine($"Erro ao processar XLS para import {import.Id}: {ex.Message}");
                 throw;
             }
         }

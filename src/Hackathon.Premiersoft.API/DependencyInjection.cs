@@ -1,12 +1,13 @@
 ﻿using Hackathon.Premiersoft.API.Data;
 using Hackathon.Premiersoft.API.Engines.Csv;
 using Hackathon.Premiersoft.API.Engines.DataProcess;
-using Hackathon.Premiersoft.API.Engines.DataProcess;
-using Hackathon.Premiersoft.API.Engines.DataProcess;
 using Hackathon.Premiersoft.API.Engines.Extensions;
 using Hackathon.Premiersoft.API.Engines.Factory;
 using Hackathon.Premiersoft.API.Engines.Interfaces;
-using Hackathon.Premiersoft.API.Engines.Xml;
+using Hackathon.Premiersoft.API.Engines.Parsers.Hl7;
+using Hackathon.Premiersoft.API.Engines.Parsers.Xls;
+using Hackathon.Premiersoft.API.Engines.Parsers.Xlxs;
+using Hackathon.Premiersoft.API.Engines.Parsers.Xml;
 using Hackathon.Premiersoft.API.Messaging.MassTransit;
 using Hackathon.Premiersoft.API.Models;
 using Hackathon.Premiersoft.API.Repository;
@@ -63,8 +64,14 @@ namespace Hackathon.Premiersoft.API
         {
             services.AddScoped<IFileReaderEngineFactory, FileReaderEngineFactory>();
             services.AddScoped<IFileReaderEngine, ExcelFileReader>();
+            services.AddScoped<IFileReaderEngine, XmlFileReader>();
             services.AddScoped<IFileReaderEngine, CsvFileReaderEngine>();
-            //services.AddScoped<IFileReaderEngine, ExcelFileReaderEngine>();
+            services.AddScoped<IFileReaderEngine, ExcelXlsFileReader>();
+            services.AddScoped<IFileReaderEngine, Hl7FileReader>();
+
+            // Registrar o serviço de processamento de registros
+            services.AddScoped<RecordProcessingService>();
+
             services.AddScoped<IEntityFactory, EntityFactory>();
             services.AddScoped<IMunicipiosRepository, MunicipiosRepository>();
             services.AddScoped<IPacientesHandler, PacientesHandler>();
@@ -74,7 +81,16 @@ namespace Hackathon.Premiersoft.API
             // Registrar handlers necessários
             services.AddScoped<IMedicosHandler, MedicosHandler>();
             services.AddScoped<IPacientesHandler, PacientesHandler>();
+            services.AddScoped<IEstadosHandler, EstadosHandler>();
+            services.AddScoped<ICid10Handler, Cid10Handler>();
+            services.AddScoped<IHospitaisHandler, HospitaisHandler>();
+            services.AddScoped<IMuncipiosHandler, MuncipiosHandler>();
             
+            services.AddScoped<IXlsxParser, XlsxParser>();
+            services.AddScoped<IXlsParser, XlsParser>();
+            services.AddScoped<IXmlParser, XmlParser>();
+            services.AddScoped<IHl7Process, Hl7Process>();
+
             // Registrar repositórios específicos
             services.AddScoped<IMunicipiosRepository, MunicipiosRepository>();
  
