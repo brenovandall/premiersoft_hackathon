@@ -48,28 +48,24 @@ export const OverviewView = () => {
         <KPICard
           title="Total de Pacientes"
           value={mockKPIData.totalPatients.toLocaleString()}
-          change="+5.2% vs mês anterior"
           trend="up"
           icon={Users}
         />
         <KPICard
           title="Hospitais Ativos"
           value={mockKPIData.totalHospitals.toLocaleString()}
-          change="+12 novos hospitais"
           trend="up"
           icon={Hospital}
         />
         <KPICard
           title="Médicos Cadastrados"
           value={mockKPIData.totalDoctors.toLocaleString()}
-          change="+3.1% vs mês anterior"
           trend="up"
           icon={UserCheck}
         />
         <KPICard
           title="Ocupação Média"
           value={`${mockKPIData.averageOccupancy}%`}
-          change="-2.3% vs mês anterior"
           trend="down"
           icon={Activity}
         />
