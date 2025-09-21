@@ -163,7 +163,7 @@ const ImportForm = () => {
       setBackendResponse(backendResult);
 
       if (backendResult.success) {
-        console.log('✅ Arquivo enviado para processamento:', backendResult.data?.processingId);
+        console.log('Arquivo enviado para processamento:', backendResult.data?.processingId);
       } else {
         throw new Error(backendResult.error || 'Erro no processamento pelo backend');
       }
@@ -493,7 +493,7 @@ const ImportForm = () => {
                   </p>
                 )}
                 <p className="text-xs text-green-600 mt-1">
-                  ✅ Upload concluído com sucesso
+                  Upload concluído com sucesso
                 </p>
               </div>
             </div>
@@ -504,7 +504,7 @@ const ImportForm = () => {
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="font-medium text-gray-900">Status do Processamento</h4>
                   <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                    � Integrado
+                    � Enviado
                   </span>
                 </div>
                 
@@ -523,8 +523,7 @@ const ImportForm = () => {
                     </div>
                     
                     <div className="text-xs text-green-600 bg-green-50 p-2 rounded">
-                      ✅ <strong>Integração Ativa:</strong> Os dados foram enviados via POST para o backend. 
-                      Verifique o console do backend para ver os dados recebidos e processados.
+                      Os dados foram enviados para o sistema de processamento.
                     </div>
                     
                     {backendResponse.data?.processingId && (
@@ -550,10 +549,10 @@ const ImportForm = () => {
               </div>
 
               {/* Dados enviados para o backend */}
-              <div className="bg-white rounded-lg p-3 border">
+              <div className="bg-white rounded-lg p-3 border hidden">
                 <h4 className="font-medium text-gray-900 mb-2">Dados Enviados</h4>
                 <div className="text-xs space-y-1">
-                  <div><strong>URL do Arquivo:</strong> {uploadResult.data?.presignedUrl ? '✅ URL pré-assinada' : uploadResult.data?.url}</div>
+                  <div><strong>URL do Arquivo:</strong> {uploadResult.data?.presignedUrl ? 'URL pré-assinada' : uploadResult.data?.url}</div>
                   <div><strong>Tipo de Dados:</strong> {selectedDataType}</div>
                   <div><strong>Formato:</strong> {getFileFormat(selectedFile.name)}</div>
                   {fieldMappings.length > 0 && (
@@ -569,15 +568,6 @@ const ImportForm = () => {
             <Button variant="outline" onClick={handleReset}>
               Fazer Nova Importação
             </Button>
-            
-            {backendResponse?.success && (
-              <Button variant="default" onClick={() => {
-                console.log('Verificar status do processamento:', backendResponse.data?.processingId);
-                // Aqui você pode implementar a verificação de status
-              }}>
-                Verificar Status
-              </Button>
-            )}
           </div>
         </div>
       )}
