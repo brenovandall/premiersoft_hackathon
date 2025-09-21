@@ -28,7 +28,7 @@ export interface ImportStatusResponse {
 
 // Configuração da API do backend
 const API_CONFIG = {
-  baseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:6000/v1',
+  baseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:6000',
   timeout: 30000, // 30 segundos
 };
 
