@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { BarChart3, Hospital, Users, MapPin, Upload } from "lucide-react";
+import { BarChart3, Hospital, Users, MapPin, Upload, Database } from "lucide-react";
 import { Link } from "react-router-dom";
 
 interface DashboardLayoutProps {
@@ -28,12 +28,20 @@ export const DashboardLayout = ({ children, activeView, onViewChange }: Dashboar
                 <p className="text-sm text-muted-foreground">Insights para Gestores de Saúde</p>
               </div>
             </div>
-            <Link to="/import">
-              <Button variant="outline" className="flex items-center gap-2">
-                <Upload className="h-4 w-4" />
-                Importar Dados
-              </Button>
-            </Link>
+            <div className="flex items-center space-x-2">
+              <Link to="/dashboard">
+                <Button variant="outline" className="flex items-center gap-2">
+                  <Database className="h-4 w-4" />
+                  Ver Dados
+                </Button>
+              </Link>
+              <Link to="/import">
+                <Button variant="outline" className="flex items-center gap-2">
+                  <Upload className="h-4 w-4" />
+                  Importar Dados
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </header>

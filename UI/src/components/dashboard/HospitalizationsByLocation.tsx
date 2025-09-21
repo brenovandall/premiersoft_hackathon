@@ -1,6 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useRealStateData } from "@/hooks/useRealData";
 
 const hospitalizationData = [
   {
@@ -71,84 +73,110 @@ const hospitalizationData = [
 ];
 
 export const HospitalizationsByLocation = () => {
+  const stateData = useRealStateData();
   const [expandedStates, setExpandedStates] = useState<Set<string>>(new Set());
 
-  const toggleState = (stateCode: string) => {
+  if (stateData.length === 0) {
+    return (
+      <Card className="bg-gradient-card shadow-card border-0">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold text-foreground">
+            Dados por Estado
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {[...Array(5)].map((_, i) => (
+              <Skeleton key={i} className="h-16 w-full" />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const toggleExpanded = (state: string) => {
     const newExpanded = new Set(expandedStates);
-    if (newExpanded.has(stateCode)) {
-      newExpanded.delete(stateCode);
+    if (newExpanded.has(state)) {
+      newExpanded.delete(state);
     } else {
-      newExpanded.add(stateCode);
+      newExpanded.add(state);
     }
     setExpandedStates(newExpanded);
   };
 
-  const getIntensityColor = (cases: number, maxCases: number) => {
-    const intensity = cases / maxCases;
-    if (intensity > 0.8) return "bg-red-500";
-    if (intensity > 0.6) return "bg-red-400";
+  const maxPatients = Math.max(...stateData.map(s => s.pacientes));
+
+  const getIntensityColor = (value: number, max: number) => {
+    const intensity = value / max;
+    if (intensity > 0.7) return "bg-red-500";
     if (intensity > 0.4) return "bg-yellow-400";
-    if (intensity > 0.2) return "bg-green-400";
     return "bg-green-500";
   };
 
-  const maxStateCases = Math.max(...hospitalizationData.map(s => s.total));
+  const topStates = stateData.slice(0, 10); // Top 10 estados
 
   return (
     <Card className="bg-gradient-card shadow-card border-0">
       <CardHeader>
         <CardTitle className="text-lg font-semibold text-foreground">
-          Total de Internações por Estado/Município
+          Distribuição por Estado (Top 10)
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-2">
-          {hospitalizationData.map((stateData) => {
-            const isExpanded = expandedStates.has(stateData.stateCode);
-            const maxMunicipalityCases = Math.max(...stateData.municipalities.map(m => m.cases));
-            
+        <div className="space-y-3 max-h-96 overflow-y-auto">
+          {topStates.map((state) => {
+            const isExpanded = expandedStates.has(state.estado);
+
             return (
-              <div key={stateData.stateCode} className="border rounded-lg overflow-hidden">
-                <div
-                  className="p-4 cursor-pointer hover:bg-accent/50 transition-colors flex items-center justify-between"
-                  onClick={() => toggleState(stateData.stateCode)}
+              <div key={state.estado} className="border rounded-lg overflow-hidden bg-background">
+                <div 
+                  className="p-4 cursor-pointer hover:bg-accent/20 transition-colors"
+                  onClick={() => toggleExpanded(state.estado)}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-3 h-3 rounded ${getIntensityColor(stateData.total, maxStateCases)}`}></div>
-                    <div>
-                      <span className="font-medium text-foreground">{stateData.state}</span>
-                      <span className="text-sm text-muted-foreground ml-2">({stateData.stateCode})</span>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-3 h-3 rounded ${getIntensityColor(state.pacientes, maxPatients)}`}></div>
+                      <div>
+                        <h3 className="font-medium text-foreground">{state.estado} ({state.uf})</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {state.municipios} municípios
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-foreground">
-                      {stateData.total.toLocaleString()} casos
-                    </span>
+                    <div className="text-right">
+                      <p className="font-semibold text-lg text-foreground">
+                        {state.pacientes.toLocaleString()}
+                      </p>
+                      <p className="text-xs text-muted-foreground">pacientes</p>
+                    </div>
                     {isExpanded ? (
-                      <ChevronUp className="w-4 h-4 text-muted-foreground" />
+                      <ChevronUp className="w-4 h-4 text-muted-foreground ml-2" />
                     ) : (
-                      <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                      <ChevronDown className="w-4 h-4 text-muted-foreground ml-2" />
                     )}
                   </div>
                 </div>
                 
                 {isExpanded && (
                   <div className="px-4 pb-4 bg-accent/20">
-                    <div className="space-y-2">
-                      <h4 className="text-sm font-medium text-muted-foreground mb-3">
-                        Principais Municípios:
-                      </h4>
-                      {stateData.municipalities.map((municipality, index) => (
-                        <div key={index} className="flex items-center justify-between py-2 px-3 bg-background rounded">
-                          <div className="flex items-center gap-2">
-                            <div className={`w-2 h-2 rounded ${getIntensityColor(municipality.cases, maxMunicipalityCases)}`}></div>
-                            <span className="text-sm text-foreground">{municipality.name}</span>
-                          </div>
-                          <span className="text-sm font-medium text-foreground">
-                            {municipality.cases.toLocaleString()}
-                          </span>
-                        </div>
-                      ))}
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Médicos:</span>
+                        <span className="font-medium">{state.medicos.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Hospitais:</span>
+                        <span className="font-medium">{state.hospitais.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Municípios:</span>
+                        <span className="font-medium">{state.municipios.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Pacientes:</span>
+                        <span className="font-medium">{state.pacientes.toLocaleString()}</span>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -163,15 +191,15 @@ export const HospitalizationsByLocation = () => {
           <div className="flex items-center gap-4 text-xs">
             <div className="flex items-center gap-1">
               <div className="w-2 h-2 rounded bg-green-500"></div>
-              <span>Baixo</span>
+              <span>Baixo (até 40%)</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-2 h-2 rounded bg-yellow-400"></div>
-              <span>Médio</span>
+              <span>Médio (40-70%)</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-2 h-2 rounded bg-red-500"></div>
-              <span>Alto</span>
+              <span>Alto (acima de 70%)</span>
             </div>
           </div>
         </div>

@@ -1,5 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
+import { useRealRegionData } from "@/hooks/useRealData";
 
 const diseasesByRegion = [
   {
@@ -55,54 +59,102 @@ const diseasesByRegion = [
 ];
 
 export const DiseasesByRegion = () => {
+  const regionData = useRealRegionData();
+
+  if (regionData.length === 0) {
+    return (
+      <Card className="bg-gradient-card shadow-card border-0">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold text-foreground">
+            Dados por Região
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="space-y-2">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-32 w-full" />
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="bg-gradient-card shadow-card border-0">
       <CardHeader>
         <CardTitle className="text-lg font-semibold text-foreground">
-          Doenças mais Incidentes por Região
+          Distribuição por Região
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
-          {diseasesByRegion.map((regionData) => (
-            <div key={regionData.region} className="space-y-3">
-              <h3 className="text-base font-medium text-foreground border-b pb-2">
-                Região {regionData.region}
-              </h3>
-              <div className="h-48">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={regionData.diseases}
-                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                    <XAxis 
-                      dataKey="name" 
-                      tick={{ fontSize: 12 }}
-                      angle={-45}
-                      textAnchor="end"
-                      height={60}
-                    />
-                    <YAxis tick={{ fontSize: 12 }} />
-                    <Tooltip 
-                      formatter={(value) => [`${value} casos`, 'Casos']}
-                      labelStyle={{ color: 'hsl(var(--foreground))' }}
-                      contentStyle={{ 
-                        backgroundColor: 'hsl(var(--background))', 
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: '8px'
-                      }}
-                    />
-                    <Bar dataKey="cases" radius={[4, 4, 0, 0]}>
-                      {regionData.diseases.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-          ))}
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={regionData}
+                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                <XAxis 
+                  dataKey="regiao" 
+                  tick={{ fontSize: 12 }}
+                />
+                <YAxis tick={{ fontSize: 12 }} />
+                <Tooltip 
+                  formatter={(value, name) => {
+                    const labels: Record<string, string> = {
+                      pacientes: 'Pacientes',
+                      medicos: 'Médicos',
+                      hospitais: 'Hospitais',
+                      municipios: 'Municípios'
+                    };
+                    return [value, labels[name as string] || name];
+                  }}
+                  labelStyle={{ color: 'hsl(var(--foreground))' }}
+                  contentStyle={{ 
+                    backgroundColor: 'hsl(var(--background))', 
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '8px'
+                  }}
+                />
+                <Bar dataKey="pacientes" fill="#dc2626" radius={[2, 2, 0, 0]} />
+                <Bar dataKey="medicos" fill="#16a34a" radius={[2, 2, 0, 0]} />
+                <Bar dataKey="hospitais" fill="#2563eb" radius={[2, 2, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          
+          {/* Tabela de resumo */}
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left py-2">Região</th>
+                  <th className="text-right py-2">Estados</th>
+                  <th className="text-right py-2">Municípios</th>
+                  <th className="text-right py-2">Pacientes</th>
+                  <th className="text-right py-2">Médicos</th>
+                  <th className="text-right py-2">Hospitais</th>
+                </tr>
+              </thead>
+              <tbody>
+                {regionData.map((region) => (
+                  <tr key={region.regiao} className="border-b">
+                    <td className="py-2 font-medium">{region.regiao}</td>
+                    <td className="text-right py-2">{region.estados}</td>
+                    <td className="text-right py-2">{region.municipios.toLocaleString()}</td>
+                    <td className="text-right py-2">{region.pacientes.toLocaleString()}</td>
+                    <td className="text-right py-2">{region.medicos.toLocaleString()}</td>
+                    <td className="text-right py-2">{region.hospitais.toLocaleString()}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </CardContent>
     </Card>
