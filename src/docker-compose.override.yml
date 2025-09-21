@@ -39,7 +39,6 @@ services:
       # - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
       - ~/.microsoft/usersecrets:/home/app/.microsoft/usersecrets:ro
       - ~/.aspnet/https:/home/app/.aspnet/https:ro
-      - ~/.aspnet/https:/home/app/.aspnet/https:ro
 
   hackathon.premiersoft.frontend:
     build:
