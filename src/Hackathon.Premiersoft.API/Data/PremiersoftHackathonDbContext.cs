@@ -26,6 +26,7 @@ namespace Hackathon.Premiersoft.API.Data
         public DbSet<Medicos> Medicos { get; set; }
         public DbSet<Hospitais> Hospitais { get ; set; }
         public DbSet<Pacientes> Pacientes { get; set; }
+        public DbSet<Cid10> Cid10 { get; set; }
         public DbSet<Import> Imports { get; set; }
         public DbSet<LineError> LineErrors { get; set; }
         public DbSet<Lookup> Lookups { get; set; }

@@ -45,7 +45,7 @@ namespace Hackathon.Premiersoft.API.Messaging.EventConsumers
                 var fileExtension = ((ImportFileFormat)context.Message.FileFormat).ToString();
 
                 var factory = GetFactory(fileExtension);
-                factory.Run(importId);
+                await factory.Run(importId);
 
                 var hasErrors = _premiersoftHackathonDbContext
                     .LineErrors.Any(l => l.ImportId == importId);

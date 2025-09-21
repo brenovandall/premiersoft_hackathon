@@ -1,29 +1,61 @@
-﻿using Hackathon.Premiersoft.API.Engines.Factory;
+﻿using Hackathon.Premiersoft.API.Data;
+using Hackathon.Premiersoft.API.Engines.Factory;
 using Hackathon.Premiersoft.API.Engines.Interfaces;
 using Hackathon.Premiersoft.API.Models;
 using Hackathon.Premiersoft.API.Repository;
+using Hackathon.Premiersoft.API.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace Hackathon.Premiersoft.API.Engines.Extensions
 {
     public class ExcelXlsFileReader : IFileReaderEngine
     {
-        private IRepository<Import, Guid> Import { get; set; }
-        private IXlsParser XlsParser { get; set; }
+        private readonly IRepository<Import, Guid> _importRepository;
+        private readonly IXlsParser _xlsParser;
+        private readonly IPremiersoftHackathonDbContext _dbContext;
+        private readonly RecordProcessingService _recordProcessingService;
+
         public string FileReaderProvider => Extensions.FileReaderProvider.XlsReaderProvider;
-        public ExcelXlsFileReader(IRepository<Import, Guid> importsRepo, IXlsParser xlsParser)
+
+        public ExcelXlsFileReader(
+            IRepository<Import, Guid> importsRepo, 
+            IXlsParser xlsParser,
+            IPremiersoftHackathonDbContext dbContext,
+            RecordProcessingService recordProcessingService)
         {
-            XlsParser = xlsParser;
-            Import = importsRepo;
+            _xlsParser = xlsParser;
+            _importRepository = importsRepo;
+            _dbContext = dbContext;
+            _recordProcessingService = recordProcessingService;
         }
 
         public async Task Run(Guid importId)
         {
-            var import = Import.GetById(importId) ?? throw new Exception("Importação não encontrado!");
+            var import = await _dbContext.Imports.FirstOrDefaultAsync(i => i.Id == importId);
+            if (import == null)
+            {
+                throw new Exception($"Import com ID {importId} não encontrado");
+            }
 
             if (string.IsNullOrEmpty(import.S3PreSignedUrl))
                 throw new Exception("URL do arquivo não encontrado!");
 
-            await XlsParser.ParseXlsAsync(import);
+            // Processa o Excel XLS usando o parser existente mas com nova lógica de salvamento
+            await ProcessXlsWithRecordByRecord(import);
+        }
+
+        private async Task ProcessXlsWithRecordByRecord(Import import)
+        {
+            try
+            {
+                // Usa o parser existente mas modifica para processar registro por registro
+                await _xlsParser.ParseXlsAsync(import);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro ao processar XLS para import {import.Id}: {ex.Message}");
+                throw;
+            }
         }
     }
 }

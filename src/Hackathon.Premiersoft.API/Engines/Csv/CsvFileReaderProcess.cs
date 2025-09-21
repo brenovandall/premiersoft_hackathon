@@ -35,7 +35,7 @@ namespace Hackathon.Premiersoft.API.Engines.Csv
             }
         }
 
-        private async Task<CsvMappedData> ParseCsvDataAsync(TextReader reader)
+        public async Task<CsvMappedData> ParseCsvDataAsync(TextReader reader)
         {
             var headers = new List<CsvHeader>();
             var rows = new List<CsvRow>();

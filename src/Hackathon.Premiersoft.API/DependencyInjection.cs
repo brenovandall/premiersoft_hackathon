@@ -1,9 +1,9 @@
 ﻿using Hackathon.Premiersoft.API.Data;
 using Hackathon.Premiersoft.API.Engines.DataProcess;
-using Hackathon.Premiersoft.API.Engines.DataProcess;
 using Hackathon.Premiersoft.API.Engines.Extensions;
 using Hackathon.Premiersoft.API.Engines.Factory;
 using Hackathon.Premiersoft.API.Engines.Interfaces;
+using Hackathon.Premiersoft.API.Engines.Parsers.Hl7;
 using Hackathon.Premiersoft.API.Engines.Parsers.Xls;
 using Hackathon.Premiersoft.API.Engines.Parsers.Xlxs;
 using Hackathon.Premiersoft.API.Engines.Parsers.Xml;
@@ -11,6 +11,7 @@ using Hackathon.Premiersoft.API.Messaging.MassTransit;
 using Hackathon.Premiersoft.API.Repository;
 using Hackathon.Premiersoft.API.Repository.Municipios;
 using Hackathon.Premiersoft.API.Repository.MunicipiosRepo;
+using Hackathon.Premiersoft.API.Services;
 using Hackathon.Premiersoft.API.Services.ImportFiles;
 using Hackathon.Premiersoft.API.SharedKernel;
 using Microsoft.EntityFrameworkCore;
@@ -62,8 +63,13 @@ namespace Hackathon.Premiersoft.API
             services.AddScoped<IFileReaderEngineFactory, FileReaderEngineFactory>();
             services.AddScoped<IFileReaderEngine, ExcelFileReader>();
             services.AddScoped<IFileReaderEngine, XmlFileReader>();
+            services.AddScoped<IFileReaderEngine, CsvFileReaderEngine>();
+            services.AddScoped<IFileReaderEngine, ExcelXlsFileReader>();
+            services.AddScoped<IFileReaderEngine, Hl7FileReader>();
 
-            //services.AddScoped<IFileReaderEngine, ExcelFileReaderEngine>();
+            // Registrar o serviço de processamento de registros
+            services.AddScoped<RecordProcessingService>();
+
             services.AddScoped<IEntityFactory, EntityFactory>();
             services.AddScoped<IMunicipiosRepository, MunicipiosRepository>();
 
@@ -74,11 +80,11 @@ namespace Hackathon.Premiersoft.API
             services.AddScoped<ICid10Handler, Cid10Handler>();
             services.AddScoped<IHospitaisHandler, HospitaisHandler>();
             services.AddScoped<IMuncipiosHandler, MuncipiosHandler>();
-            services.AddScoped <IFileReaderEngine, ExcelFileReader>();
-            services.AddScoped<IFileReaderEngine, ExcelXlsFileReader>();
+            
             services.AddScoped<IXlsxParser, XlsxParser>();
             services.AddScoped<IXlsParser, XlsParser>();
             services.AddScoped<IXmlParser, XmlParser>();
+            services.AddScoped<IHl7Process, Hl7Process>();
 
             // Registrar repositórios específicos
 

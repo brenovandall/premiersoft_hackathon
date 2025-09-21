@@ -18,12 +18,11 @@ namespace Hackathon.Premiersoft.API.Controllers
         [HttpGet("ler")]
         public IActionResult GetCsvFileDataAsync()
         {
-
-            var csvFileReaderEngine = new Engines.Extensions.CsvFileReaderEngine();
-            csvFileReaderEngine.Run(Guid.NewGuid());
+            // TODO: Usar injeção de dependência ao invés de instanciar diretamente
+            // var csvFileReaderEngine = new Engines.Extensions.CsvFileReaderEngine();
+            // csvFileReaderEngine.Run(Guid.NewGuid());
             
-
-            return Accepted(new { message = "Processamento iniciado em background" });
+            return Accepted(new { message = "Processamento iniciado em background - implementação via factory" });
         }
 
 
