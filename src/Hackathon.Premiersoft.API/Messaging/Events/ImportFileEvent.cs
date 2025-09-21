@@ -2,9 +2,5 @@
 
 namespace Hackathon.Premiersoft.API.Messaging.Events
 {
-    public sealed class ImportFileEvent : IDomainEvent
-    {
-        public string PreSignedUrl { get; set; } = default!;
-        public long ImportId { get; set; }
-    }
+    public sealed record ImportFileEvent(string PreSignedUrl, int FileFormat, long ImportId) : IDomainEvent;
 }
