@@ -60,6 +60,7 @@ namespace Hackathon.Premiersoft.API
             //services.AddScoped<IFileReaderEngine, ExcelFileReaderEngine>();
             services.AddScoped<IEntityFactory, EntityFactory>();
 
+            services.AddScoped<IImportFilesService, ImportFilesService>();
             services.AddTransient<IDomainEventsDispatcher, DomainEventsDispatcher>();
 
             services.Scan(scan => scan.FromAssembliesOf(typeof(DependencyInjection))

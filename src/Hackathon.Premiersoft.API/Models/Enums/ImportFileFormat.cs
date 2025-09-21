@@ -2,7 +2,7 @@
 {
     public enum ImportFileFormat
     {
-        Excel,
+        Excel = 0,
         Csv,
         Xml,
         Json,

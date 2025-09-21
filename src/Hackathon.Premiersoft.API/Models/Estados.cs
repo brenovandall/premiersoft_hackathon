@@ -2,7 +2,7 @@
 
 namespace Hackathon.Premiersoft.API.Models
 {
-    public class Estados : Entity<int>
+    public class Estados : Entity<long>
     {
         public int Codigo_uf { get; set; }
         public string Uf { get; set; }
