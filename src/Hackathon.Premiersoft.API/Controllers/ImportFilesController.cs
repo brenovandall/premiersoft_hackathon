@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Hackathon.Premiersoft.API.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("v1/[controller]")]
     public class ImportFilesController : ControllerBase
     {
         private readonly IImportFilesService _importFilesService;

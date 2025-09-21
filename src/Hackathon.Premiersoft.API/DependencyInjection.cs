@@ -11,6 +11,7 @@ using Hackathon.Premiersoft.API.Services.ImportFiles;
 using Hackathon.Premiersoft.API.SharedKernel;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
+using Hackathon.Premiersoft.API.Engines.DataProcess;
 
 namespace Hackathon.Premiersoft.API
 {
@@ -59,6 +60,13 @@ namespace Hackathon.Premiersoft.API
             services.AddScoped<IFileReaderEngine, ExcelFileReader>();
             //services.AddScoped<IFileReaderEngine, ExcelFileReaderEngine>();
             services.AddScoped<IEntityFactory, EntityFactory>();
+
+            // Registrar handlers necessários
+            services.AddScoped<IMedicosHandler, MedicosHandler>();
+            services.AddScoped<IPacientesHandler, PacientesHandler>();
+            
+            // Registrar repositórios específicos
+            services.AddScoped<IMunicipiosRepository, MunicipiosRepository>();
 
             services.AddScoped<IImportFilesService, ImportFilesService>();
             services.AddTransient<IDomainEventsDispatcher, DomainEventsDispatcher>();
