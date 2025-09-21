@@ -3,11 +3,16 @@ import {
   MunicipioDto, 
   PacienteDto, 
   MedicoDto, 
-  HospitalDto, 
+  HospitalDto,
+  HospitalListDto,
+  HospitalDetailsDto,
+  HospitalSpecialtyDto,
+  PatientDemographicDto,
+  DoctorSpecialtyStatsDto,
+  DoctorSearchDto,
+  PatientStatsDto,
   HealthResponse 
-} from '@/types/getdata';
-
-// Configuração da API GetData
+} from '@/types/getdata';// Configuração da API GetData
 const GETDATA_API_CONFIG = {
   baseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/v1/ImportFiles',
   timeout: 30000, // 30 segundos
@@ -121,6 +126,62 @@ export class GetDataService {
   static async getHospitais(): Promise<HospitalDto[]> {
     return apiRequest<HospitalDto[]>('/hospitais');
   }
+
+  /**
+   * Busca lista de hospitais para seleção
+   */
+  static async getHospitalsList(): Promise<HospitalListDto[]> {
+    return apiRequest<HospitalListDto[]>('/hospitais/list');
+  }
+
+  /**
+   * Busca detalhes específicos de um hospital
+   */
+  static async getHospitalDetails(hospitalId: number): Promise<HospitalDetailsDto> {
+    return apiRequest<HospitalDetailsDto>(`/hospitais/${hospitalId}/details`);
+  }
+
+  /**
+   * Busca especialidades médicas de um hospital específico
+   */
+  static async getHospitalSpecialties(hospitalId: number): Promise<HospitalSpecialtyDto[]> {
+    return apiRequest<HospitalSpecialtyDto[]>(`/hospitais/${hospitalId}/especialidades`);
+  }
+
+  /**
+   * Busca dados demográficos de pacientes
+   */
+  static async getPatientDemographics(): Promise<PatientDemographicDto[]> {
+    return apiRequest<PatientDemographicDto[]>('/pacientes/demographics');
+  }
+
+  /**
+   * Busca estatísticas gerais de pacientes
+   */
+  static async getPatientStats(): Promise<PatientStatsDto> {
+    return apiRequest<PatientStatsDto>('/pacientes/stats');
+  }
+
+  /**
+   * Busca estatísticas de médicos por especialidade
+   */
+  static async getDoctorSpecialtyStats(): Promise<DoctorSpecialtyStatsDto[]> {
+    return apiRequest<DoctorSpecialtyStatsDto[]>('/medicos/specialty-stats');
+  }
+
+  /**
+   * Busca médicos por nome e especialidade
+   */
+  static async searchDoctors(searchTerm?: string, specialty?: string): Promise<DoctorSearchDto[]> {
+    const params = new URLSearchParams();
+    if (searchTerm) params.append('searchTerm', searchTerm);
+    if (specialty) params.append('specialty', specialty);
+    
+    const queryString = params.toString();
+    const endpoint = queryString ? `/medicos/search?${queryString}` : '/medicos/search';
+    
+    return apiRequest<DoctorSearchDto[]>(endpoint);
+  }
 }
 
 /**
@@ -135,5 +196,12 @@ export const useGetDataService = () => {
     getPacientes: GetDataService.getPacientes,
     getMedicos: GetDataService.getMedicos,
     getHospitais: GetDataService.getHospitais,
+    getHospitalsList: GetDataService.getHospitalsList,
+    getHospitalDetails: GetDataService.getHospitalDetails,
+    getHospitalSpecialties: GetDataService.getHospitalSpecialties,
+    getPatientDemographics: GetDataService.getPatientDemographics,
+    getPatientStats: GetDataService.getPatientStats,
+    getDoctorSpecialtyStats: GetDataService.getDoctorSpecialtyStats,
+    searchDoctors: GetDataService.searchDoctors,
   };
 };

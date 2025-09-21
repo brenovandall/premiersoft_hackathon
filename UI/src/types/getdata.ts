@@ -54,6 +54,64 @@ export interface HospitalDto {
   leitos_totais: number;
 }
 
+export interface HospitalListDto {
+  id: number;
+  nome: string;
+  cidade: string;
+  uf: string;
+}
+
+export interface HospitalDetailsDto {
+  id: number;
+  nome: string;
+  cidade: string;
+  estado: string;
+  uf: string;
+  leitosTotal: number;
+  leitosOcupados: number;
+  medicosAlocados: number;
+  taxaOcupacao: number;
+  rankingRegional: number;
+  tipoHospital: string;
+}
+
+export interface HospitalSpecialtyDto {
+  especialidade: string;
+  numeroMedicos: number;
+  numeroPacientes: number;
+}
+
+export interface PatientDemographicDto {
+  ageGroup: string;
+  male: number;
+  female: number;
+  total: number;
+}
+
+export interface DoctorSpecialtyStatsDto {
+  specialty: string;
+  doctors: number;
+  patients: number;
+  doctorPatientRatio: number;
+}
+
+export interface DoctorSearchDto {
+  id: number;
+  name: string;
+  specialty: string;
+  hospitals: string[];
+  city: string;
+  state: string;
+}
+
+export interface PatientStatsDto {
+  totalPatients: number;
+  malePatients: number;
+  femalePatients: number;
+  malePercentage: number;
+  femalePercentage: number;
+}
+
 export interface HealthResponse {
   status: string;
   timestamp: string;
