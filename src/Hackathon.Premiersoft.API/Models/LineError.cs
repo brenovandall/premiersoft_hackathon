@@ -28,7 +28,7 @@ namespace Hackathon.Premiersoft.API.Models
 
         public LineError(Guid importId, Import import, long line, string field, string error, string value)
         {
-            Id = Id = Guid.NewGuid();
+            Id = Guid.NewGuid();
             ImportId = importId;
             Import = import;
             Line = line;

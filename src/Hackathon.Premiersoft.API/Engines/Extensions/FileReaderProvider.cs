@@ -8,5 +8,6 @@
         public const string JsonReaderProvider = "Json";
         public const string Hl7ReaderProvider = "Hl7";
         public const string FhirReaderProvider = "Fhir";
+        public const string XlsReaderProvider = "Xls";
     }
 }

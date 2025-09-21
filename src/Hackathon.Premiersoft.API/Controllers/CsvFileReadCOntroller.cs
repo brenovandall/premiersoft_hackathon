@@ -30,24 +30,11 @@ namespace Hackathon.Premiersoft.API.Controllers
         [HttpGet("ler")]
         public IActionResult GetCsvFileDataAsync()
         {
-            var import = Import.Create(
-            dataType: ImportDataTypes.City,
-            fileFormat: ImportFileFormat.Csv,
-            fileName: "1758407824810-municipios.csv",
-            s3PreSignedUrl: "uploads/municipios/2025-09-20/1758407824810-municipios.csv",
-            totalRegisters: 2,
-            totalImportedRegisters: 110,
-            totalDuplicatedRegisters: 5,
-            totalFailedRegisters: 5,
-            importedOn: DateTime.UtcNow.AddMinutes(-30),
-            finishedOn: DateTime.UtcNow
-            );
-            ImportRepository.Add(import);
-
-            var factory = FileReaderEngineFactory.CreateFactory(FileReaderProvider.CsvReaderProvider);
-            factory.Run(import.Id);
-
-            return Accepted(new { message = "Processamento iniciado em background" });
+            // TODO: Usar injeção de dependência ao invés de instanciar diretamente
+            // var csvFileReaderEngine = new Engines.Extensions.CsvFileReaderEngine();
+            // csvFileReaderEngine.Run(Guid.NewGuid());
+            
+            return Accepted(new { message = "Processamento iniciado em background - implementação via factory" });
         }
 
 
