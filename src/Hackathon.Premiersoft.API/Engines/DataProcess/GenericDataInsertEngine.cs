@@ -25,7 +25,7 @@ public class GenericDataInsertEngine<TEntity, TId>
         CancellationToken cancellationToken = default)
     {
         var result = new DataProcessingResult<TEntity> { TotalRowsProcessed = rows.Count() };
-        var entitiesToInsert = new List<TEntity>();
+        var validEntities = new List<TEntity>();
 
         var entityProperties = typeof(TEntity).GetProperties()
             .ToDictionary(p => p.Name, p => p);
@@ -35,6 +35,7 @@ public class GenericDataInsertEngine<TEntity, TId>
             cancellationToken.ThrowIfCancellationRequested();
 
             var entity = new TEntity();
+            bool hasConversionError = false;
 
             foreach (var mapping in columnMapping)
             {
@@ -55,6 +56,8 @@ public class GenericDataInsertEngine<TEntity, TId>
                     }
                     catch (Exception ex)
                     {
+                        hasConversionError = true;
+
                         result.Errors.Add(new DataProcessingError
                         {
                             RowIndex = row.Index,
@@ -62,18 +65,19 @@ public class GenericDataInsertEngine<TEntity, TId>
                             RawValue = sourceValue,
                             ErrorMessage = $"Erro de conversão para '{targetProperty}': {ex.Message}"
                         });
-
-                        // Continua o processo mesmo com erro, não marca como inválido
                     }
                 }
             }
 
-            entitiesToInsert.Add(entity); // Sempre adiciona a entidade, mesmo com erros
+            if (!hasConversionError)
+            {
+                validEntities.Add(entity);
+            }
         }
 
-        if (entitiesToInsert.Any())
+        if (validEntities.Any())
         {
-            foreach (var entity in entitiesToInsert)
+            foreach (var entity in validEntities)
             {
                 _repository.Add(entity);
             }
@@ -81,12 +85,12 @@ public class GenericDataInsertEngine<TEntity, TId>
             try
             {
                 await _dbContext.SaveChangesAsync(cancellationToken);
-                result.SuccessfulInserts.AddRange(entitiesToInsert);
+                result.SuccessfulInserts.AddRange(validEntities);
             }
             catch (Exception ex)
             {
-                // Falha na persistência (ex: restrições de banco, etc.)
-                foreach (var entity in entitiesToInsert)
+                // Falha ao salvar no banco (ex: violação de constraint, etc.)
+                foreach (var entity in validEntities)
                 {
                     result.Errors.Add(new DataProcessingError
                     {
@@ -101,7 +105,6 @@ public class GenericDataInsertEngine<TEntity, TId>
 
         return result;
     }
-
 
     private object? ConvertValue(object? sourceValue, Type targetType)
     {

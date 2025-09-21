@@ -4,53 +4,53 @@ using Hackathon.Premiersoft.API.Engines.Interfaces;
 using Hackathon.Premiersoft.API.Models;
 using Hackathon.Premiersoft.API.Repository;
 using Hackathon.Premiersoft.API.Services;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using System.Globalization;
 using System.Text;
 
 namespace Hackathon.Premiersoft.API.Engines.Csv
 {
-    public class CsvFileReaderProcess: ICsvFileReaderProcess
+    public class CsvFileReaderProcess : ICsvFileReaderProcess
     {
         public string FileReaderProvider => Extensions.FileReaderProvider.CsvReaderProvider;
-  
-        private IRepository<Municipios, Guid> MunicipiosRepository { get; set; }
-        private IPremiersoftHackathonDbContext DbContext { get; set; }
 
-        public CsvFileReaderProcess( IRepository<Municipios, Guid> municipiosRepository, IPremiersoftHackathonDbContext dbContext)
+        private readonly IServiceScopeFactory _scopeFactory;
+
+        public CsvFileReaderProcess(IServiceScopeFactory scopeFactory)
         {
-            MunicipiosRepository = municipiosRepository;
-            DbContext = dbContext;
+            _scopeFactory = scopeFactory;
         }
-
 
         public async Task ProcessarArquivoEmBackground(string key)
         {
             try
             {
-                var s3Service = new S3Service();
-                using var reader = await s3Service.ObterLeitorDoArquivoAsync(key);
+                var s3Service = new S3Service(); // Você pode injetar isso também, se desejar
 
+                using var reader = await s3Service.ObterLeitorDoArquivoAsync(key);
                 var csvData = await ParseCsvDataAsync(reader);
 
                 if (csvData != null && csvData.Rows.Any())
                 {
-                    await ImportarMunicipiosAsync(csvData);
-                }
+                    using var scope = _scopeFactory.CreateScope();
 
-                Console.WriteLine($"Linhas lidas do arquivo: {csvData.Rows.Count}");
+                    var repo = scope.ServiceProvider.GetRequiredService<IRepository<Municipios, Guid>>();
+                    var dbContext = scope.ServiceProvider.GetRequiredService<IPremiersoftHackathonDbContext>();
+
+                    await ImportarMunicipiosAsync(csvData, repo, dbContext);
+                }
             }
             catch (Exception ex)
             {
-                // Este bloco agora captura erros tanto da leitura do arquivo quanto da importação
                 Console.WriteLine($"Erro no processamento em background: {ex.Message}");
             }
         }
 
-
-        public async Task ImportarMunicipiosAsync(CsvMappedData csvData)
+        private async Task ImportarMunicipiosAsync(
+            CsvMappedData csvData,
+            IRepository<Municipios, Guid> repo,
+            IPremiersoftHackathonDbContext dbContext)
         {
-           
             var mapeamentoMunicipios = new Dictionary<string, string>
             {
                 { "codigo_ibge", nameof(Municipios.Codigo_ibge) },
@@ -64,12 +64,9 @@ namespace Hackathon.Premiersoft.API.Engines.Csv
                 { "fuso_horario", nameof(Municipios.Fuso_horario) }
             };
 
-           var engine = new GenericDataInsertEngine<Municipios, Guid>(MunicipiosRepository, DbContext);
-
+            var engine = new GenericDataInsertEngine<Municipios, Guid>(repo, dbContext);
 
             var result = await engine.ProcessAndInsertAsync(csvData.Rows, mapeamentoMunicipios);
-
-      
 
             if (result.HasErrors)
             {
@@ -77,7 +74,7 @@ namespace Hackathon.Premiersoft.API.Engines.Csv
                 foreach (var error in result.Errors)
                 {
                     Console.WriteLine($"  - Linha {error.RowIndex}, Coluna '{error.ColumnName}': {error.ErrorMessage} (Valor lido: '{error.RawValue}')");
-                    // Aqui você pode salvar esses erros em uma tabela de log, como a sua `LineError`
+                    // Aqui você pode salvar os erros em uma tabela, se desejar
                 }
             }
         }
@@ -94,23 +91,21 @@ namespace Hackathon.Premiersoft.API.Engines.Csv
             }
 
             headers = ParseHeaders(headerLine);
-
             if (!headers.Any())
             {
                 return CreateEmptyResult("Nenhum cabeçalho válido encontrado.");
             }
 
             var columnMapping = CreateColumnMapping(headers);
-
             int lineIndex = 0;
             string line;
+
             while ((line = await reader.ReadLineAsync()) != null)
             {
                 if (string.IsNullOrWhiteSpace(line))
                     continue;
 
                 var values = SplitCsvLine(line);
-
                 if (values.All(v => string.IsNullOrWhiteSpace(v)))
                     continue;
 
@@ -123,7 +118,6 @@ namespace Hackathon.Premiersoft.API.Engines.Csv
                     var header = headers[i];
 
                     rawValues.Add(value);
-
                     var convertedValue = ConvertValue(value, header);
                     rowData[header.NormalizedName] = convertedValue;
 
@@ -168,7 +162,6 @@ namespace Hackathon.Premiersoft.API.Engines.Csv
             }
 
             var headers = new List<CsvHeader>();
-
             for (int i = 0; i < headerValues.Count; i++)
             {
                 var headerName = headerValues[i].Trim();
@@ -282,6 +275,7 @@ namespace Hackathon.Premiersoft.API.Engines.Csv
                 }
             };
         }
+
         private string NormalizeHeaderName(string headerName)
         {
             return headerName

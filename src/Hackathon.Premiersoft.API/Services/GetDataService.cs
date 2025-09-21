@@ -64,7 +64,6 @@ namespace Hackathon.Premiersoft.API.Services
                     Ddd = m.Ddd,
                     Fuso_horario = m.Fuso_horario,
                     Populacao = m.Populacao,
-                    Erros = m.Erros
                 })
                 .ToListAsync();
 
@@ -88,7 +87,7 @@ namespace Hackathon.Premiersoft.API.Services
                     Ddd = m.Ddd,
                     Fuso_horario = m.Fuso_horario,
                     Populacao = m.Populacao,
-                    Erros = m.Erros
+                  
                 })
                 .ToListAsync();
 

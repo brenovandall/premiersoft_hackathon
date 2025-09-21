@@ -14,7 +14,6 @@ namespace Hackathon.Premiersoft.API.Models
         public int Ddd { get; set; }
         public string Fuso_horario { get; set; }
         public int Populacao { get; set; }
-        public string Erros { get; set; }
 
         public Municipios()
         {
