@@ -4,30 +4,36 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { Users, UserCheck, Search, Filter } from "lucide-react";
-import { mockAgeGenderData, mockSpecialtyData } from "@/data/mockData";
+import { Users, UserCheck, Search, Filter, AlertCircle } from "lucide-react";
 import { useState } from "react";
-
-const mockDoctors = [
-  { id: 1, name: "Dr. João Silva", specialty: "Cardiologia", hospitals: ["Hospital das Clínicas", "Albert Einstein"] },
-  { id: 2, name: "Dra. Maria Santos", specialty: "Pneumologia", hospitals: ["Sírio-Libanês"] },
-  { id: 3, name: "Dr. Pedro Costa", specialty: "Endocrinologia", hospitals: ["Copa D'Or", "Hospital das Clínicas"] },
-  { id: 4, name: "Dra. Ana Lima", specialty: "Neurologia", hospitals: ["Albert Einstein", "Sírio-Libanês", "Copa D'Or"] },
-];
+import { usePatientDemographics, usePatientStats, useDoctorSpecialtyStats, useDoctorSearch } from "@/hooks/useGetData";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export const PatientsView = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSpecialty, setSelectedSpecialty] = useState("all");
 
-  const filteredDoctors = mockDoctors.filter(doctor => {
-    const matchesSearch = doctor.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesSpecialty = selectedSpecialty === "all" || doctor.specialty === selectedSpecialty;
-    return matchesSearch && matchesSpecialty;
-  });
+  // API hooks
+  const { data: demographicsData, loading: demographicsLoading, error: demographicsError } = usePatientDemographics();
+  const { data: patientStats, loading: statsLoading, error: statsError } = usePatientStats();
+  const { data: specialtyStats, loading: specialtyLoading, error: specialtyError } = useDoctorSpecialtyStats();
+  const { data: doctors, loading: doctorsLoading, error: doctorsError } = useDoctorSearch(searchTerm, selectedSpecialty === "all" ? undefined : selectedSpecialty);
 
-  const totalPatients = mockAgeGenderData.reduce((sum, item) => sum + item.male + item.female, 0);
-  const malePatients = mockAgeGenderData.reduce((sum, item) => sum + item.male, 0);
-  const femalePatients = mockAgeGenderData.reduce((sum, item) => sum + item.female, 0);
+  // Calculate totals from demographics data
+  const totalPatients = demographicsData?.reduce((sum, item) => sum + item.totalCount, 0) || 0;
+  const malePatients = demographicsData?.reduce((sum, item) => sum + item.maleCount, 0) || 0;
+  const femalePatients = demographicsData?.reduce((sum, item) => sum + item.femaleCount, 0) || 0;
+
+  // Transform specialty stats for chart
+  const chartData = specialtyStats?.map(stat => ({
+    specialty: stat.especialidade,
+    patients: stat.totalPacientes,
+    doctors: stat.totalMedicos
+  })) || [];
+
+  // Get unique specialties for filter
+  const uniqueSpecialties = [...new Set(specialtyStats?.map(stat => stat.especialidade) || [])];
 
   return (
     <div className="space-y-8">
@@ -38,42 +44,71 @@ export const PatientsView = () => {
 
       {/* Patient Demographics KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <KPICard
-          title="Total de Pacientes"
-          value={totalPatients.toLocaleString()}
-          change="Todas as idades"
-          trend="neutral"
-          icon={Users}
-        />
-        <KPICard
-          title="Pacientes Masculinos"
-          value={malePatients.toLocaleString()}
-          change={`${((malePatients / totalPatients) * 100).toFixed(1)}%`}
-          trend="neutral"
-          icon={UserCheck}
-        />
-        <KPICard
-          title="Pacientes Femininas"
-          value={femalePatients.toLocaleString()}
-          change={`${((femalePatients / totalPatients) * 100).toFixed(1)}%`}
-          trend="neutral"
-          icon={UserCheck}
-        />
+        {statsLoading ? (
+          <>
+            <Skeleton className="h-24" />
+            <Skeleton className="h-24" />
+            <Skeleton className="h-24" />
+          </>
+        ) : statsError ? (
+          <div className="col-span-3">
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{statsError}</AlertDescription>
+            </Alert>
+          </div>
+        ) : (
+          <>
+            <KPICard
+              title="Total de Pacientes"
+              value={patientStats?.totalPacientes?.toLocaleString() || '0'}
+              change="Todas as idades"
+              trend="neutral"
+              icon={Users}
+            />
+            <KPICard
+              title="Pacientes Masculinos"
+              value={malePatients.toLocaleString()}
+              change={totalPatients > 0 ? `${((malePatients / totalPatients) * 100).toFixed(1)}%` : '0%'}
+              trend="neutral"
+              icon={UserCheck}
+            />
+            <KPICard
+              title="Pacientes Femininas"
+              value={femalePatients.toLocaleString()}
+              change={totalPatients > 0 ? `${((femalePatients / totalPatients) * 100).toFixed(1)}%` : '0%'}
+              trend="neutral"
+              icon={UserCheck}
+            />
+          </>
+        )}
       </div>
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
-
         <ChartCard title="Relação Médicos/Pacientes por Especialidade">
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={mockSpecialtyData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="specialty" angle={-45} textAnchor="end" height={80} />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="patients" fill="hsl(var(--chart-3))" name="Pacientes" />
-            </BarChart>
-          </ResponsiveContainer>
+          {specialtyLoading ? (
+            <Skeleton className="h-[300px]" />
+          ) : specialtyError ? (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{specialtyError}</AlertDescription>
+            </Alert>
+          ) : chartData.length === 0 ? (
+            <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+              Nenhum dado de especialidade disponível
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="specialty" angle={-45} textAnchor="end" height={80} />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="patients" fill="hsl(var(--chart-3))" name="Pacientes" />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
         </ChartCard>
       </div>
 
@@ -103,39 +138,53 @@ export const PatientsView = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Todas as especialidades</SelectItem>
-                  <SelectItem value="Cardiologia">Cardiologia</SelectItem>
-                  <SelectItem value="Pneumologia">Pneumologia</SelectItem>
-                  <SelectItem value="Endocrinologia">Endocrinologia</SelectItem>
-                  <SelectItem value="Neurologia">Neurologia</SelectItem>
+                  {uniqueSpecialties.map((specialty) => (
+                    <SelectItem key={specialty} value={specialty}>
+                      {specialty}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          <div className="space-y-3">
-            {filteredDoctors.map((doctor) => (
-              <div key={doctor.id} className="p-4 bg-accent rounded-lg">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="font-semibold text-accent-foreground">{doctor.name}</h3>
-                    <p className="text-sm text-accent-foreground/80">{doctor.specialty}</p>
+          {doctorsLoading ? (
+            <div className="space-y-3">
+              <Skeleton className="h-20" />
+              <Skeleton className="h-20" />
+              <Skeleton className="h-20" />
+            </div>
+          ) : doctorsError ? (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{doctorsError}</AlertDescription>
+            </Alert>
+          ) : (
+            <div className="space-y-3">
+              {doctors.map((doctor) => (
+                <div key={doctor.id} className="p-4 bg-accent rounded-lg">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-semibold text-accent-foreground">{doctor.nome}</h3>
+                      <p className="text-sm text-accent-foreground/80">{doctor.especialidade}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-medium text-accent-foreground">
+                        CRM: {doctor.crm}
+                      </p>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-medium text-accent-foreground">
-                      {doctor.hospitals.length} hospital{doctor.hospitals.length > 1 ? "is" : ""}
+                  <div className="mt-2">
+                    <p className="text-xs text-accent-foreground/70">
+                      Total de pacientes: {doctor.totalPacientes || 0}
                     </p>
                   </div>
                 </div>
-                <div className="mt-2">
-                  <p className="text-xs text-accent-foreground/70">
-                    Hospitais: {doctor.hospitals.join(", ")}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
 
-          {filteredDoctors.length === 0 && (
+          {!doctorsLoading && !doctorsError && doctors.length === 0 && (
             <div className="text-center py-8">
               <p className="text-muted-foreground">Nenhum médico encontrado com os critérios selecionados.</p>
             </div>

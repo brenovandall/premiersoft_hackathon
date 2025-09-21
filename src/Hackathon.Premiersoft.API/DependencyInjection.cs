@@ -12,6 +12,7 @@ using Hackathon.Premiersoft.API.Models;
 using Hackathon.Premiersoft.API.Repository;
 using Hackathon.Premiersoft.API.Repository.Municipios;
 using Hackathon.Premiersoft.API.Repository.MunicipiosRepo;
+using Hackathon.Premiersoft.API.Services;
 using Hackathon.Premiersoft.API.Services.ImportFiles;
 using Hackathon.Premiersoft.API.SharedKernel;
 using Microsoft.EntityFrameworkCore;
@@ -79,6 +80,7 @@ namespace Hackathon.Premiersoft.API
  
 
             services.AddScoped<IImportFilesService, ImportFilesService>();
+            services.AddScoped<IGetDataService, GetDataService>();
             services.AddTransient<IDomainEventsDispatcher, DomainEventsDispatcher>();
 
             services.Scan(scan => scan.FromAssembliesOf(typeof(DependencyInjection))

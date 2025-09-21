@@ -25,6 +25,8 @@ var app = builder.Build();
 
 app.UseCors("AllowAll");
 
+// Middleware customizado para CORS manual se necessário - TEMPORARIAMENTE COMENTADO
+/*
 app.Use(async (context, next) =>
 {
     context.Response.Headers.Add("Access-Control-Allow-Origin", "*");
@@ -39,6 +41,7 @@ app.Use(async (context, next) =>
 
     await next();
 });
+*/
 
 app.UseSwagger();
 app.UseSwaggerUI();
