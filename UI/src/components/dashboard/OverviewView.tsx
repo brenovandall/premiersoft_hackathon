@@ -78,7 +78,7 @@ export const OverviewView = () => {
         <BrazilMap />
 
         <ChartCard title="Principais Doenças (CID-10)">
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={400}>
             <PieChart>
               <Pie
                 data={mockDiseaseData}
@@ -88,7 +88,7 @@ export const OverviewView = () => {
                 label={({ name, percent }) =>
                   `${name} ${(percent * 100).toFixed(0)}%`
                 }
-                outerRadius={80}
+                outerRadius={120}
                 fill="#8884d8"
                 dataKey="value"
               >
