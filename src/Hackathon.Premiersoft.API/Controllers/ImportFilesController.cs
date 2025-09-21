@@ -1,6 +1,4 @@
 ﻿using Hackathon.Premiersoft.API.Dto;
-using Hackathon.Premiersoft.API.Engines.Extensions;
-using Hackathon.Premiersoft.API.Engines.Factory;
 using Hackathon.Premiersoft.API.Models;
 using Hackathon.Premiersoft.API.Services.ImportFiles;
 using Microsoft.AspNetCore.Mvc;
@@ -12,7 +10,6 @@ namespace Hackathon.Premiersoft.API.Controllers
     public class ImportFilesController : ControllerBase
     {
         private readonly IImportFilesService _importFilesService;
-        private IFileReaderEngineFactory FileReaderEngineFactory { get; set; }
 
         public ImportFilesController(IImportFilesService importFilesService)
         {
@@ -23,7 +20,6 @@ namespace Hackathon.Premiersoft.API.Controllers
         public async Task<IActionResult> Create([FromBody] ImportFilesRequest request, CancellationToken cancellationToken)
         {
             var import = await _importFilesService.Create(request, cancellationToken);
- 
 
             return Ok(new 
             { 

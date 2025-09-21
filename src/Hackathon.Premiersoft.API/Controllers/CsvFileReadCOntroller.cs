@@ -1,11 +1,4 @@
-﻿using Hackathon.Premiersoft.API.Engines.Csv;
-using Hackathon.Premiersoft.API.Engines.Extensions;
-using Hackathon.Premiersoft.API.Engines.Factory;
-using Hackathon.Premiersoft.API.Engines.Interfaces;
-using Hackathon.Premiersoft.API.Models;
-using Hackathon.Premiersoft.API.Models.Enums;
-using Hackathon.Premiersoft.API.Repository;
-using Hackathon.Premiersoft.API.Services;
+﻿using Hackathon.Premiersoft.API.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Hackathon.Premiersoft.API.Controllers
@@ -15,37 +8,20 @@ namespace Hackathon.Premiersoft.API.Controllers
     public class CsvFileReadController : ControllerBase
     {
         private readonly S3Service _s3Service;
-        private IFileReaderEngineFactory FileReaderEngineFactory { get; set; }
-        private IRepository<Import, Guid> ImportRepository { get; set; }
 
-        public CsvFileReadController(S3Service s3Service, IFileReaderEngineFactory fileReaderEngineFactory, IRepository<Import, Guid> importRepository)
+        public CsvFileReadController(S3Service s3Service)
         {
             _s3Service = s3Service;
-
-            FileReaderEngineFactory = fileReaderEngineFactory;
-            ImportRepository = importRepository;
         }
 
         [HttpGet]
         [HttpGet("ler")]
         public IActionResult GetCsvFileDataAsync()
         {
-            var import = Import.Create(
-            dataType: ImportDataTypes.City,
-            fileFormat: ImportFileFormat.Csv,
-            fileName: "1758407824810-municipios.csv",
-            s3PreSignedUrl: "uploads/municipios/2025-09-20/1758407824810-municipios.csv",
-            totalRegisters: 2,
-            totalImportedRegisters: 110,
-            totalDuplicatedRegisters: 5,
-            totalFailedRegisters: 5,
-            importedOn: DateTime.UtcNow.AddMinutes(-30),
-            finishedOn: DateTime.UtcNow
-            );
-            ImportRepository.Add(import);
 
-            var factory = FileReaderEngineFactory.CreateFactory(FileReaderProvider.CsvReaderProvider);
-            factory.Run(import.Id);
+            var csvFileReaderEngine = new Engines.Extensions.CsvFileReaderEngine();
+            csvFileReaderEngine.Run(Guid.NewGuid());
+            
 
             return Accepted(new { message = "Processamento iniciado em background" });
         }
@@ -91,7 +67,7 @@ namespace Hackathon.Premiersoft.API.Controllers
             return Ok();
         }
 
-        [HttpPost("upload")]
+                [HttpPost("upload")]
         public IActionResult ReceberDadosUpload([FromBody] object rawRequest)
         {
             try
@@ -100,7 +76,7 @@ namespace Hackathon.Premiersoft.API.Controllers
                 Console.WriteLine("📥 DADOS DO UPLOAD RECEBIDOS:");
                 Console.WriteLine("========================================");
                 Console.WriteLine($"� Raw JSON: {rawRequest}");
-
+                
                 // Processar o JSON manualmente
                 var jsonString = rawRequest.ToString();
                 if (string.IsNullOrEmpty(jsonString))
@@ -125,7 +101,7 @@ namespace Hackathon.Premiersoft.API.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine($"❌ Erro ao processar dados do upload: {ex.Message}");
-
+                
                 var errorResponse = new UploadResponse
                 {
                     Success = false,

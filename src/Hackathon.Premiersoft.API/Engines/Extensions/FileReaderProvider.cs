@@ -2,11 +2,11 @@
 {
     public static class FileReaderProvider
     {
-        public const string ExcelReaderProvider = "Excel";
-        public const string CsvReaderProvider = "Csv";
-        public const string XmlReaderProvider = "Xml";
-        public const string JsonReaderProvider = "Json";
-        public const string Hl7ReaderProvider = "Hl7";
-        public const string FhirReaderProvider = "Fhir";
+        public const string ExcelReaderProvider = ".xlsx";
+        public const string CsvReaderProvider = ".csv";
+        public const string XmlReaderProvider = ".xml";
+        public const string JsonReaderProvider = ".json";
+        public const string Hl7ReaderProvider = ".hl7";
+        public const string FhirReaderProvider = ".fhir";
     }
 }

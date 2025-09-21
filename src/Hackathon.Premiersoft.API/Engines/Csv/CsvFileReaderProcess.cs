@@ -1,27 +1,23 @@
 ﻿using Hackathon.Premiersoft.API.Dto;
-using Hackathon.Premiersoft.API.Engines.Interfaces;
-using Hackathon.Premiersoft.API.Models;
-using Hackathon.Premiersoft.API.Repository;
 using Hackathon.Premiersoft.API.Services;
-using Microsoft.EntityFrameworkCore;
 using System.Globalization;
 using System.Text;
 
 namespace Hackathon.Premiersoft.API.Engines.Csv
 {
-    public class CsvFileReaderProcess: ICsvFileReaderProcess
+    public class CsvFileReaderProcess
     {
         public string FileReaderProvider => Extensions.FileReaderProvider.CsvReaderProvider;
-  
-        private IRepository<Municipios, Guid> MunicipiosRepository { get; set; }
 
- 
-        public CsvFileReaderProcess( IRepository<Municipios, Guid> municipiosRepository)
+        private readonly CsvReaderOptions _options;
+
+        public CsvFileReaderProcess(CsvReaderOptions options = null)
         {
-            MunicipiosRepository = municipiosRepository;
+            _options = options ?? new CsvReaderOptions();
         }
 
 
+ 
         public async Task ProcessarArquivoEmBackground(string key)
         {
             try
@@ -31,57 +27,11 @@ namespace Hackathon.Premiersoft.API.Engines.Csv
 
                 var csvData = await ParseCsvDataAsync(reader);
 
-                if (csvData != null && csvData.Rows.Any())
-                {
-                    await ImportarMunicipiosAsync(csvData);
-                }
-
-                Console.WriteLine($"Linhas lidas do arquivo: {csvData.Rows.Count}");
+                Console.WriteLine($"Linhas processadas: {csvData.Rows.Count}");
             }
             catch (Exception ex)
             {
-                // Este bloco agora captura erros tanto da leitura do arquivo quanto da importação
-                Console.WriteLine($"Erro no processamento em background: {ex.Message}");
-            }
-        }
-
-
-        public async Task ImportarMunicipiosAsync(CsvMappedData csvData)
-        {
-            // 1. DEFINIR O "DE-PARA" (Mapeamento)
-            // Key: Nome da coluna no arquivo (já normalizado pelo seu leitor)
-            // Value: Nome da propriedade na sua entidade `Municipios`
-            var mapeamentoMunicipios = new Dictionary<string, string>
-            {
-                { "codigo_ibge", nameof(Municipios.Codigo_ibge) },
-                { "nome", nameof(Municipios.Nome) },
-                { "latitude", nameof(Municipios.Latitude) },
-                { "longitude", nameof(Municipios.Longitude) },
-                { "capital", nameof(Municipios.Capital) },
-                { "codigo_uf", nameof(Municipios.Codigo_uf) },
-                { "siafi_id", nameof(Municipios.Siafi_id) },
-                { "ddd", nameof(Municipios.Ddd) },
-                { "fuso_horario", nameof(Municipios.Fuso_horario) }
-            };
-
-            var engine = new GenericDataInsertEngine<Municipios, Guid>(MunicipiosRepository);
-
-
-            var result = await engine.ProcessAndInsertAsync(csvData.Rows, mapeamentoMunicipios);
-
-            // 4. ANALISAR E LOGAR O RESULTADO
-            Console.WriteLine($"[DataImportService] Processamento de Municípios concluído.");
-            Console.WriteLine($"--> Sucesso: {result.SuccessCount} linhas inseridas.");
-            Console.WriteLine($"--> Erros: {result.ErrorCount} linhas com erro.");
-
-            if (result.HasErrors)
-            {
-                Console.WriteLine("--> Detalhes dos erros:");
-                foreach (var error in result.Errors)
-                {
-                    Console.WriteLine($"  - Linha {error.RowIndex}, Coluna '{error.ColumnName}': {error.ErrorMessage} (Valor lido: '{error.RawValue}')");
-                    // Aqui você pode salvar esses erros em uma tabela de log, como a sua `LineError`
-                }
+                Console.WriteLine($"Erro ao processar arquivo em background: {ex.Message}");
             }
         }
 
@@ -212,7 +162,7 @@ namespace Hackathon.Premiersoft.API.Engines.Csv
                         inQuotes = !inQuotes;
                     }
                 }
-                else if (c == ',' && !inQuotes)
+                else if (c == _options.Separator && !inQuotes)
                 {
                     result.Add(current.ToString());
                     current.Clear();

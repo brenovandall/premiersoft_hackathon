@@ -6,7 +6,6 @@ using Hackathon.Premiersoft.API.Engines.Xml;
 using Hackathon.Premiersoft.API.Models;
 using Hackathon.Premiersoft.API.Repository;
 using Microsoft.AspNetCore.Mvc;
-using System;
 
 namespace Hackathon.Premiersoft.API.Controllers
 {
@@ -22,10 +21,7 @@ namespace Hackathon.Premiersoft.API.Controllers
             ImportRepository = importRepo;
         }
 
-        /// <summary>
-        /// Lê dados de um arquivo XML.
-        /// </summary>
-        /// <returns>Mensagem de sucesso ou erro</returns>
+        [HttpGet]
         [HttpGet("ler")]
         public IActionResult GetXmlData()
         {
@@ -36,26 +32,24 @@ namespace Hackathon.Premiersoft.API.Controllers
             }
             catch (Exception ex)
             {
-                return Ok($"Erro: {ex.Message}");
+                return Ok(ex.Message);
             }
 
-            return Ok("Arquivo XML lido com sucesso.");
-        }
-
-        /// <summary>
-        /// Retorna status OK.
-        /// </summary>
-        /// <returns>Status OK</returns>
-        [HttpGet("ok")]
-        public IActionResult RetornaOk()
-        {
-            var resposta = new RespostaOk { Status = "ok" };
-            return Ok(resposta);
+            // Add your CSV reading logic here
+            return Ok("CSV data read successfully");
         }
 
         public class RespostaOk
         {
             public string Status { get; set; }
+        }
+
+        [HttpGet]
+        [HttpGet("ok")]
+        public IActionResult RetornaOk()
+        {
+            var resposta = new RespostaOk { Status = "ok" };
+            return Ok(resposta);
         }
     }
 }
