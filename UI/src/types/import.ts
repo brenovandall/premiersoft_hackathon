@@ -89,7 +89,7 @@ export interface FieldMapping {
   dataType: DataType;
 }
 
-// Tipo para dados do mapeamento - formato simplificado: {campo_origem: 'campo_destino'}
+// Tipo para dados do mapeamento - formato simplificado como objeto key-value
 export type FieldMappingBackend = Record<string, string>;
 
 // Interface para dados que serão enviados ao backend após upload
@@ -98,7 +98,7 @@ export interface BackendProcessingData {
   fileName: string;
   dataType: DataType;
   fileFormat: FileFormat;
-  fieldMappings: FieldMappingBackend;
+  fieldMappings: FieldMappingBackend[];
   fileSize: number;
   bucketName: string;
   s3Key: string;

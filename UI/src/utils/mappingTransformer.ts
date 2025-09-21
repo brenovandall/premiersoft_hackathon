@@ -2,18 +2,14 @@ import { FieldMapping, FieldMappingBackend, BackendProcessingData, DataType, Fil
 
 /**
  * Transforma os field mappings do formato interno para o formato esperado pelo backend
- * Formato: {campo_origem: 'campo_destino'}
+ * Formato: [{ "campo_origem": "campo_destino" }]
  */
-export function transformFieldMappings(fieldMappings: FieldMapping[]): FieldMappingBackend {
-  const result: FieldMappingBackend = {};
-  
-  fieldMappings.forEach(mapping => {
-    if (mapping.sourceField && mapping.targetField) {
-      result[mapping.sourceField] = mapping.targetField;
-    }
-  });
-  
-  return result;
+export function transformFieldMappings(fieldMappings: FieldMapping[]): FieldMappingBackend[] {
+  return fieldMappings
+    .filter(mapping => mapping.sourceField && mapping.targetField)
+    .map(mapping => ({
+      [mapping.sourceField]: mapping.targetField
+    }));
 }
 
 /**
@@ -77,7 +73,7 @@ export function validateBackendData(data: BackendProcessingData): { isValid: boo
   }
 
   // Verificar se há pelo menos um mapeamento válido (para arquivos que suportam mapeamento)
-  if (Object.keys(data.fieldMappings).length === 0) {
+  if (data.fieldMappings.length === 0) {
     console.warn('Nenhum mapeamento de campo definido - o backend processará com campos padrão');
   }
 

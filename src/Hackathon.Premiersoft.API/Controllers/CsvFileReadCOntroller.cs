@@ -38,7 +38,7 @@ namespace Hackathon.Premiersoft.API.Controllers
             public string FileName { get; set; } = string.Empty;
             public string DataType { get; set; } = string.Empty;
             public string FileFormat { get; set; } = string.Empty;
-            public Dictionary<string, string> FieldMappings { get; set; } = new Dictionary<string, string>();
+            public object[] FieldMappings { get; set; } = new object[0];
             public long FileSize { get; set; }
             public string BucketName { get; set; } = string.Empty;
             public string S3Key { get; set; } = string.Empty;
@@ -67,42 +67,22 @@ namespace Hackathon.Premiersoft.API.Controllers
             return Ok();
         }
 
-        [HttpPost("upload")]
-        public IActionResult ReceberDadosUpload([FromBody] UploadRequest request)
+                [HttpPost("upload")]
+        public IActionResult ReceberDadosUpload([FromBody] object rawRequest)
         {
             try
             {
                 Console.WriteLine("========================================");
                 Console.WriteLine("📥 DADOS DO UPLOAD RECEBIDOS:");
                 Console.WriteLine("========================================");
-                Console.WriteLine($"📁 Nome do Arquivo: {request.FileName}");
-                Console.WriteLine($"🏷️  Tipo de Dados: {request.DataType}");
-                Console.WriteLine($"📄 Formato: {request.FileFormat}");
-                Console.WriteLine($"📊 Tamanho: {request.FileSize:N0} bytes ({request.FileSize / 1024.0 / 1024.0:F2} MB)");
-                Console.WriteLine($"📦 Bucket S3: {request.BucketName}");
-                Console.WriteLine($"🔑 Chave S3: {request.S3Key}");
-                Console.WriteLine($"🔗 URL do Arquivo:");
-                Console.WriteLine($"   {request.FileUrl}");
-                Console.WriteLine();
-                Console.WriteLine($"🗂️  MAPEAMENTOS DE CAMPOS ({request.FieldMappings.Count} itens):");
+                Console.WriteLine($"� Raw JSON: {rawRequest}");
                 
-                if (request.FieldMappings.Any())
+                // Processar o JSON manualmente
+                var jsonString = rawRequest.ToString();
+                if (string.IsNullOrEmpty(jsonString))
                 {
-                    int counter = 1;
-                    foreach (var mapping in request.FieldMappings)
-                    {
-                        Console.WriteLine($"   {counter:D2}. {mapping.Key} → {mapping.Value}");
-                        counter++;
-                    }
+                    return BadRequest("Dados inválidos");
                 }
-                else
-                {
-                    Console.WriteLine("   (Nenhum mapeamento configurado)");
-                }
-                
-                Console.WriteLine();
-                Console.WriteLine("✅ Dados recebidos e processados com sucesso!");
-                Console.WriteLine("========================================");
 
                 var response = new UploadResponse
                 {
@@ -112,9 +92,6 @@ namespace Hackathon.Premiersoft.API.Controllers
                     {
                         ProcessingId = Guid.NewGuid().ToString(),
                         ReceivedAt = DateTime.UtcNow,
-                        FileName = request.FileName,
-                        DataType = request.DataType,
-                        MappingsCount = request.FieldMappings.Count,
                         Status = "processed"
                     }
                 };
