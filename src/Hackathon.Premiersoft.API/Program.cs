@@ -1,4 +1,5 @@
 using Hackathon.Premiersoft.API;
+using Hackathon.Premiersoft.API.Data.Extensions;
 using Hackathon.Premiersoft.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -46,5 +47,7 @@ app.Use(async (context, next) =>
 app.UseAuthorization();
 
 app.MapControllers();
+
+await app.InitialiseDatabseAsync();
 
 app.Run();
