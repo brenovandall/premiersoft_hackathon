@@ -265,5 +265,18 @@ namespace Hackathon.Premiersoft.API.Engines.Extensions
                 }
             };
         }
+
+        private string NormalizeHeaderName(string headerName)
+        {
+            return headerName
+                .Replace(" ", "_")
+                .Replace("-", "_")
+                .ToLowerInvariant();
+        }
+        private List<CsvRow> ParseRows(string[] dataLines, List<CsvHeader> headers)
+        {
+            // Este método não é mais usado com a versão streaming, pode ser removido se quiser
+            throw new NotImplementedException("Use ParseCsvDataAsync para leitura por stream.");
+        }
     }
 }
