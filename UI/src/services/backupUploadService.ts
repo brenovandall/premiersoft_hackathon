@@ -46,6 +46,9 @@ export async function uploadBackupFile(file: File, request: BackupUploadRequest)
       case 4: // Cidade/Município
         endpoint = '/v1/DirectImport/municipios';
         break;
+      case 5: // CID-10
+        endpoint = '/v1/DirectImport/cid10';
+        break;
       default:
         throw new Error(`Tipo de dados ${request.dataType} não suportado para importação direta`);
     }
@@ -144,7 +147,8 @@ export function validateBackupFile(file: File): { valid: boolean; error?: string
  */
 export const DATA_TYPE_LABELS = {
   3: 'Estado',
-  4: 'Cidade/Município'
+  4: 'Cidade/Município',
+  5: 'Tabela CID-10'
 } as const;
 
 /**

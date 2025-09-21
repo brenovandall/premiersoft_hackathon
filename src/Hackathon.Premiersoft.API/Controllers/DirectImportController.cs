@@ -262,5 +262,107 @@ namespace Hackathon.Premiersoft.API.Controllers
                 });
             }
         }
+
+        [HttpPost("cid10")]
+        public async Task<IActionResult> ImportCid10([FromBody] DirectImportRequest request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                if (request.DataType != (int)ImportDataTypes.CidTable)
+                {
+                    return BadRequest("Este endpoint é específico para importação de CID-10");
+                }
+
+                var response = new DirectImportResponse();
+                var errors = new List<string>();
+
+                // Decodificar o conteúdo do arquivo
+                string csvContent;
+                try
+                {
+                    var bytes = Convert.FromBase64String(request.FileContent);
+                    csvContent = System.Text.Encoding.UTF8.GetString(bytes);
+                }
+                catch
+                {
+                    csvContent = request.FileContent;
+                }
+
+                var lines = csvContent.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+                
+                if (lines.Length < 2)
+                {
+                    return BadRequest("Arquivo CSV deve ter pelo menos um cabeçalho e uma linha de dados");
+                }
+
+                var dataLines = lines.Skip(1);
+                var processedCount = 0;
+                var successCount = 0;
+
+                foreach (var line in dataLines)
+                {
+                    processedCount++;
+                    try
+                    {
+                        var columns = line.Split(',');
+                        
+                        if (columns.Length < 2)
+                        {
+                            errors.Add($"Linha {processedCount}: Número insuficiente de colunas (esperado: codigo,descricao)");
+                            continue;
+                        }
+
+                        // Mapear colunas do CSV: codigo,descricao
+                        var cid10 = new Cid10
+                        {
+                            Id = Guid.NewGuid(),
+                            Codigo = columns[0].Trim().Trim('"'),
+                            Descricao = columns[1].Trim().Trim('"')
+                        };
+
+                        // Verificar se já existe
+                        var existeCid10 = await _dbContext.Cid10
+                            .FirstOrDefaultAsync(c => c.Codigo == cid10.Codigo, cancellationToken);
+
+                        if (existeCid10 == null)
+                        {
+                            _dbContext.Cid10.Add(cid10);
+                            successCount++;
+                        }
+                        else
+                        {
+                            // Atualizar dados existentes
+                            existeCid10.Descricao = cid10.Descricao;
+                            successCount++;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        errors.Add($"Linha {processedCount}: {ex.Message}");
+                    }
+                }
+
+                // Salvar no banco
+                await _dbContext.SaveChangesAsync(cancellationToken);
+
+                response.Success = true;
+                response.Message = $"Importação concluída: {successCount} códigos CID-10 processados com sucesso";
+                response.ProcessedRecords = processedCount;
+                response.SuccessfulRecords = successCount;
+                response.ErrorRecords = errors.Count;
+                response.Errors = errors;
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new DirectImportResponse
+                {
+                    Success = false,
+                    Message = $"Erro interno: {ex.Message}",
+                    Errors = new List<string> { ex.Message }
+                });
+            }
+        }
     }
 }

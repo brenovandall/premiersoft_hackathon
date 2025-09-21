@@ -233,7 +233,7 @@ export function UploadBackup({ className }: UploadBackupProps) {
         <div className="text-xs text-muted-foreground">
           <p>• Importação direta no banco de dados</p>
           <p>• Não passa pela tabela Import - processamento imediato</p>
-          <p>• Suporta apenas Estados e Municípios no momento</p>
+          <p>• Suporta: Estados, Municípios e Tabela CID-10</p>
           <p>• Formatos suportados: CSV e Excel</p>
         </div>
       </CardContent>
