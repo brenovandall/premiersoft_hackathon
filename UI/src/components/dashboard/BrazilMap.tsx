@@ -35,13 +35,19 @@ export const BrazilMap = () => {
   const [selectedState, setSelectedState] = useState<string | null>(null);
   const maxValue = Math.max(...states.map(s => s.value));
 
+  const getTextColor = (value: number) => {
+    const intensity = value / maxValue;
+    return intensity > 0.4 ? "#ffffff" : "#000000";
+  };
+
   const getColor = (value: number) => {
     const intensity = value / maxValue;
-    if (intensity > 0.8) return "hsl(var(--chart-1))";
-    if (intensity > 0.6) return "hsl(var(--chart-2))";
-    if (intensity > 0.4) return "hsl(var(--chart-3))";
-    if (intensity > 0.2) return "hsl(var(--chart-4))";
-    return "hsl(var(--muted))";
+    // Escala de verde (baixo) para vermelho (alto)
+    if (intensity > 0.8) return "#dc2626";
+    if (intensity > 0.6) return "#f87171";
+    if (intensity > 0.4) return "#fbbf24";
+    if (intensity > 0.2) return "#a3e635";
+    return "#22c55e"; // Verde
   };
 
   return (
@@ -58,13 +64,28 @@ export const BrazilMap = () => {
               <div
                 key={state.id}
                 className="p-3 rounded-lg border cursor-pointer transition-smooth hover:shadow-md"
-                style={{ backgroundColor: getColor(state.value) }}
+                style={{ 
+                  backgroundColor: getColor(state.value),
+                  color: getTextColor(state.value)
+                }}
                 onClick={() => setSelectedState(selectedState === state.id ? null : state.id)}
               >
-                <div className="text-sm font-medium text-white">{state.id}</div>
-                <div className="text-xs text-white/80">{state.value.toLocaleString()}</div>
+                <div className="text-sm font-medium">{state.id}</div>
+                <div className="text-xs opacity-80">{state.value.toLocaleString()}</div>
               </div>
             ))}
+          </div>
+          
+          {/* Legenda de cores */}
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 rounded" style={{ backgroundColor: "#22c55e" }}></div>
+              <span>Menos internações</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span>Mais internações</span>
+              <div className="w-3 h-3 rounded" style={{ backgroundColor: "#dc2626" }}></div>
+            </div>
           </div>
           
           {selectedState && (

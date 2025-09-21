@@ -19,8 +19,6 @@ namespace Hackathon.Premiersoft.API.Messaging.MassTransit
                     config.AddConsumers(assembly);
                 }
 
-                config.AddDelayedMessageScheduler();
-
                 config.UsingRabbitMq((context, configurator) =>
                 {
                     configurator.Host(new Uri(configuration["MessageBroker:Host"]!), host =>
@@ -28,8 +26,7 @@ namespace Hackathon.Premiersoft.API.Messaging.MassTransit
                         host.Username(configuration["MessageBroker:UserName"]!);
                         host.Password(configuration["MessageBroker:Password"]!);
                     });
-
-                    configurator.UseDelayedMessageScheduler();
+                    configurator.ConfigureEndpoints(context);
                 });
             });
 

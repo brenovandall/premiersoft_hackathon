@@ -89,11 +89,8 @@ export interface FieldMapping {
   dataType: DataType;
 }
 
-// Tipo para dados do mapeamento DE > PARA
-export interface FieldMappingBackend {
-  de: string;  // Campo de origem no arquivo
-  para: string; // Campo de destino na tabela do banco
-}
+// Tipo para dados do mapeamento - formato simplificado como objeto key-value
+export type FieldMappingBackend = Record<string, string>;
 
 // Interface para dados que serão enviados ao backend após upload
 export interface BackendProcessingData {

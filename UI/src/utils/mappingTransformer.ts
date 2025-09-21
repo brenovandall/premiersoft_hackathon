@@ -2,12 +2,14 @@ import { FieldMapping, FieldMappingBackend, BackendProcessingData, DataType, Fil
 
 /**
  * Transforma os field mappings do formato interno para o formato esperado pelo backend
+ * Formato: [{ "campo_origem": "campo_destino" }]
  */
 export function transformFieldMappings(fieldMappings: FieldMapping[]): FieldMappingBackend[] {
-  return fieldMappings.map(mapping => ({
-    de: mapping.sourceField,   // Campo de origem no arquivo
-    para: mapping.targetField  // Campo de destino na tabela do banco
-  }));
+  return fieldMappings
+    .filter(mapping => mapping.sourceField && mapping.targetField)
+    .map(mapping => ({
+      [mapping.sourceField]: mapping.targetField
+    }));
 }
 
 /**
