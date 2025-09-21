@@ -12,6 +12,7 @@ namespace Hackathon.Premiersoft.API.Engines.Extensions
     {
         private IRepository<Import, long> Import { get; set; }
         private IXmlProcess XmlProcessEngine { get; set; }
+        private IEntityFactory EntityFactory { get; set; }
         public string FileReaderProvider => Extensions.FileReaderProvider.XmlReaderProvider;
         public XmlFileReader(IEntityFactory entityFactory, IXmlProcess xmlProcess, IRepository<Import, long> importsRepo)
         {
