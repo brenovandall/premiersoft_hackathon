@@ -57,8 +57,8 @@ function convertDataType(dataType: DataType): number {
 function convertFileFormat(fileFormat: FileFormat): number {
   const mapping: Record<FileFormat, number> = {
     "csv": 1,
-    "xlsx": 2,
-    "xls": 2,
+    "xlsx": 1, // Excel convertido para CSV no frontend
+    "xls": 1,  // Excel convertido para CSV no frontend
     "xml": 4
   };
   return mapping[fileFormat] || 1;
@@ -519,7 +519,7 @@ function convertApiDataToImportRecord(apiData: any): ImportRecord {
   // Mapear fileFormat numérico para string
   const fileFormatMap: Record<number, FileFormat> = {
     1: "csv",
-    2: "xlsx",
+    2: "csv", // Excel é convertido para CSV no frontend
     3: "csv", // JSON mapeado para CSV por compatibilidade
     4: "xml"
   };

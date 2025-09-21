@@ -8,6 +8,7 @@ import { useS3MultipartUpload } from "@/hooks/useS3MultipartUpload";
 import { DataTypeSelector } from "./DataTypeSelector";
 import { FieldMappingComponent } from "./FieldMappingComponent";
 import { FileHeaderReader } from "@/utils/fileHeaderReader";
+import { ExcelToCsvConverter } from "@/utils/excelToCsvConverter";
 import { DataType, FieldMapping, FileHeader, TABLE_SCHEMAS } from "@/types/import";
 import { createBackendProcessingData, validateBackendData } from "@/utils/mappingTransformer";
 import { sendFileToBackend, BackendProcessingResponse } from "@/services/backendService";
@@ -16,12 +17,14 @@ type UploadStep = "select-file" | "select-type" | "map-fields" | "upload" | "pro
 
 const ImportForm = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [originalFile, setOriginalFile] = useState<File | null>(null); // Arquivo original (Excel)
   const [selectedDataType, setSelectedDataType] = useState<DataType | undefined>(undefined);
   const [fileHeader, setFileHeader] = useState<FileHeader | null>(null);
   const [fieldMappings, setFieldMappings] = useState<FieldMapping[]>([]);
   const [currentStep, setCurrentStep] = useState<UploadStep>("select-file");
   const [error, setError] = useState<string>("");
   const [isReadingHeader, setIsReadingHeader] = useState(false);
+  const [isConvertingExcel, setIsConvertingExcel] = useState(false);
   
   // Estados para controle do backend
   const [isSendingToBackend, setIsSendingToBackend] = useState(false);
@@ -61,8 +64,41 @@ const ImportForm = () => {
         return;
       }
 
-      setSelectedFile(file);
-      setCurrentStep("select-type");
+      // Verificar se é um arquivo Excel que precisa ser convertido
+      if (ExcelToCsvConverter.isExcelFile(file)) {
+        setIsConvertingExcel(true);
+        setOriginalFile(file);
+        
+        try {
+          console.log(`🔄 Convertendo arquivo Excel para CSV: ${file.name}`);
+          
+          const conversionResult = await ExcelToCsvConverter.convertExcelToCsv(file, {
+            skipEmptyRows: true,
+            header: true
+          });
+
+          if (!conversionResult.success || !conversionResult.csvFile) {
+            throw new Error(conversionResult.error || 'Erro na conversão do Excel');
+          }
+
+          console.log(`✅ Conversão concluída: ${conversionResult.rowCount} linhas, ${conversionResult.columnCount} colunas`);
+          
+          // Usar o arquivo CSV convertido como arquivo selecionado
+          setSelectedFile(conversionResult.csvFile);
+          setCurrentStep("select-type");
+          
+        } catch (conversionError) {
+          console.error('❌ Erro na conversão Excel:', conversionError);
+          setError(conversionError instanceof Error ? conversionError.message : 'Erro ao converter arquivo Excel');
+        } finally {
+          setIsConvertingExcel(false);
+        }
+      } else {
+        // Para arquivos que não são Excel, usar diretamente
+        setSelectedFile(file);
+        setOriginalFile(file);
+        setCurrentStep("select-type");
+      }
     }
   };
 
@@ -178,10 +214,17 @@ const ImportForm = () => {
 
   const getFileFormat = (fileName: string): string => {
     const extension = fileName.toLowerCase().split('.').pop();
+    
+    // Se o arquivo foi convertido de Excel para CSV, tratar como CSV
+    if (fileName.includes('_converted.csv')) {
+      return 'csv';
+    }
+    
     switch (extension) {
       case 'xlsx':
       case 'xls':
-        return 'xlsx';
+        // Excel será convertido para CSV no frontend
+        return 'csv';
       case 'csv':
         return 'csv';
       case 'xml':
@@ -193,11 +236,13 @@ const ImportForm = () => {
 
   const handleReset = () => {
     setSelectedFile(null);
+    setOriginalFile(null);
     setSelectedDataType(undefined);
     setFileHeader(null);
     setFieldMappings([]);
     setCurrentStep("select-file");
     setError("");
+    setIsConvertingExcel(false);
     setIsSendingToBackend(false);
     setBackendResponse(null);
     setUploadResult(null);
@@ -322,25 +367,50 @@ const ImportForm = () => {
 
       {/* Step 1: Seleção de arquivo */}
       {currentStep === "select-file" && (
-        <div
-          {...getRootProps()}
-          className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-            isDragActive
-              ? "border-blue-400 bg-blue-50"
-              : "border-gray-300 hover:border-gray-400"
-          }`}
-        >
-          <input {...getInputProps()} />
-          <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-          {isDragActive ? (
-            <p className="text-blue-600">Solte o arquivo aqui...</p>
-          ) : (
-            <div>
-              <p className="text-gray-600 mb-2">
-                Clique para selecionar ou arraste um arquivo aqui
-              </p>
+        <div>
+          {/* Indicador de conversão Excel */}
+          {isConvertingExcel && (
+            <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-center space-x-3">
+                <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+                <div>
+                  <p className="text-blue-800 font-medium">
+                    Convertendo arquivo Excel para CSV...
+                  </p>
+                  <p className="text-blue-600 text-sm">
+                    Preservando headers e estrutura de colunas
+                  </p>
+                </div>
+              </div>
             </div>
           )}
+          
+          <div
+            {...getRootProps()}
+            className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+              isDragActive
+                ? "border-blue-400 bg-blue-50"
+                : "border-gray-300 hover:border-gray-400"
+            } ${isConvertingExcel ? "opacity-50 pointer-events-none" : ""}`}
+          >
+            <input {...getInputProps()} disabled={isConvertingExcel} />
+            <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+            {isDragActive ? (
+              <p className="text-blue-600">Solte o arquivo aqui...</p>
+            ) : (
+              <div>
+                <p className="text-gray-600 mb-2">
+                  Clique para selecionar ou arraste um arquivo aqui
+                </p>
+                <p className="text-sm text-gray-500">
+                  Formatos: CSV, XML, Excel (.xlsx/.xls), TXT • Máximo: 5GB
+                </p>
+                <p className="text-xs text-gray-400 mt-1">
+                  ℹ️ Arquivos Excel serão convertidos automaticamente para CSV
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -350,11 +420,21 @@ const ImportForm = () => {
           <div className="bg-gray-50 rounded-lg p-4">
             <div className="flex items-center space-x-3">
               <FileText className="h-8 w-8 text-blue-600" />
-              <div>
+              <div className="flex-1">
                 <p className="font-medium text-gray-900">{selectedFile.name}</p>
                 <p className="text-sm text-gray-500">
                   {formatFileSize(selectedFile.size)}
                 </p>
+                {originalFile && originalFile !== selectedFile && (
+                  <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded">
+                    <p className="text-sm text-green-800">
+                      ✅ Convertido de Excel: <span className="font-medium">{originalFile.name}</span>
+                    </p>
+                    <p className="text-xs text-green-600">
+                      Headers e estrutura preservados • Pronto para processamento
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
