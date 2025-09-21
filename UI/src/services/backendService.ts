@@ -93,8 +93,8 @@ export async function sendFileToBackend(data: BackendProcessingData): Promise<Ba
       fileFormat: convertFileFormat(data.fileFormat),
       description: `Importação de ${data.dataType} - ${data.fileName}`,
       fileName: data.fileName,
-      s3PreSignedUrl: data.fileUrl,
-      status: 1, // Pending
+      s3PreSignedUrl: data.s3Key,
+      status: 1,
       fieldMappings: convertFieldMappings(data.fieldMappings)
     };
 
