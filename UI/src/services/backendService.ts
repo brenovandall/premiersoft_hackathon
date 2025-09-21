@@ -1,4 +1,4 @@
-import { ImportFilesRequest, KeyPair } from '@/types/import';
+import { ImportFilesRequest, KeyPair, BackendProcessingData, DataType, FileFormat } from '@/types/import';
 
 // Interfaces para resposta do backend
 export interface BackendProcessingResponse {
@@ -33,29 +33,72 @@ const API_CONFIG = {
 };
 
 /**
+ * Converte DataType para ImportDataTypes (enum do backend)
+ */
+function convertDataType(dataType: DataType): number {
+  const mapping: Record<DataType, number> = {
+    "municipios": 1,
+    "estados": 2, 
+    "medicos": 3,
+    "hospitais": 4,
+    "pacientes": 5,
+    "cid10": 6,
+    "hospitals": 4,
+    "doctors": 3,
+    "patients": 5,
+    "locations": 1
+  };
+  return mapping[dataType] || 1;
+}
+
+/**
+ * Converte FileFormat para ImportFileFormat (enum do backend)
+ */
+function convertFileFormat(fileFormat: FileFormat): number {
+  const mapping: Record<FileFormat, number> = {
+    "csv": 1,
+    "xlsx": 2,
+    "xls": 2,
+    "xml": 4
+  };
+  return mapping[fileFormat] || 1;
+}
+
+/**
+ * Converte FieldMappingBackend para KeyPair[]
+ */
+function convertFieldMappings(fieldMappings: Record<string, string>[]): KeyPair[] {
+  return fieldMappings.flatMap(mapping => 
+    Object.entries(mapping).map(([from, to]) => ({ from, to }))
+  );
+}
+
+/**
  * Envia os dados do arquivo e mapeamentos para o backend processar
  */
-export async function sendFileToBackend(data: ImportFilesRequest): Promise<BackendProcessingResponse> {
+export async function sendFileToBackend(data: BackendProcessingData): Promise<BackendProcessingResponse> {
   try {
     console.log('📤 Enviando dados para o backend via POST:');
     console.log('🌐 URL:', `${API_CONFIG.baseUrl}/ImportFiles`);
-    console.log('📊 Dados:', data);
+    console.log('📊 Dados recebidos:', data);
 
     // Validar dados antes de enviar
-    if (!data.fileName || !data.s3PreSignedUrl) {
-      throw new Error('Nome do arquivo e URL do S3 são obrigatórios');
+    if (!data.fileName || !data.fileUrl) {
+      throw new Error('Nome do arquivo e URL do arquivo são obrigatórios');
     }
 
-    // Preparar payload conforme o ImportFilesRequest
+    // Converter BackendProcessingData para ImportFilesRequest
     const payload: ImportFilesRequest = {
-      dataType: data.dataType,
-      fileFormat: data.fileFormat,
-      description: data.description || '',
+      dataType: convertDataType(data.dataType),
+      fileFormat: convertFileFormat(data.fileFormat),
+      description: `Importação de ${data.dataType} - ${data.fileName}`,
       fileName: data.fileName,
-      s3PreSignedUrl: data.s3PreSignedUrl,
-      status: data.status,
-      fieldMappings: data.fieldMappings || []
+      s3PreSignedUrl: data.fileUrl,
+      status: 1, // Pending
+      fieldMappings: convertFieldMappings(data.fieldMappings)
     };
+
+    console.log('📊 Payload convertido:', payload);
 
     const response = await fetch(`${API_CONFIG.baseUrl}/ImportFiles`, {
       method: 'POST',
@@ -100,6 +143,85 @@ export async function sendFileToBackend(data: ImportFilesRequest): Promise<Backe
       }
 
       if (error.message.includes('fetch')) {
+        return {
+          success: false,
+          message: 'Erro de conectividade',
+          error: 'Não foi possível conectar ao backend. Verifique se o serviço está rodando.',
+        };
+      }
+
+      return {
+        success: false,
+        message: 'Erro no processamento',
+        error: error.message,
+      };
+    }
+
+    return {
+      success: false,
+      message: 'Erro desconhecido',
+      error: 'Ocorreu um erro inesperado durante o processamento',
+    };
+  }
+}
+
+/**
+ * Envia dados diretamente no formato ImportFilesRequest (para uso avançado)
+ */
+export async function sendImportFilesRequest(data: ImportFilesRequest): Promise<BackendProcessingResponse> {
+  try {
+    console.log('📤 Enviando ImportFilesRequest diretamente para o backend:');
+    console.log('🌐 URL:', `${API_CONFIG.baseUrl}/ImportFiles`);
+    console.log('📊 Dados:', data);
+
+    // Validar dados antes de enviar
+    if (!data.fileName || !data.s3PreSignedUrl) {
+      throw new Error('Nome do arquivo e URL do S3 são obrigatórios');
+    }
+
+    const response = await fetch(`${API_CONFIG.baseUrl}/ImportFiles`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify(data),
+      signal: AbortSignal.timeout(API_CONFIG.timeout),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ Erro HTTP:', response.status, errorText);
+      throw new Error(`HTTP ${response.status}: ${errorText}`);
+    }
+
+    const result = await response.json();
+    console.log('✅ Resposta do backend:', result);
+    
+    return {
+      success: true,
+      message: 'Importação criada com sucesso',
+      data: {
+        id: result.id,
+        processingId: result.id?.toString() || `import_${Date.now()}`,
+        estimatedTime: 30,
+        status: result.status || 'pending'
+      },
+    };
+
+  } catch (error) {
+    console.error('❌ Erro ao enviar ImportFilesRequest para o backend:', error);
+
+    if (error instanceof Error) {
+      if (error.name === 'TimeoutError') {
+        return {
+          success: false,
+          message: 'Timeout na comunicação com o backend',
+          error: 'A requisição demorou mais que o esperado para ser processada',
+        };
+      }
+
+      if (error.message.includes('fetch') || error.message.includes('NetworkError')) {
         return {
           success: false,
           message: 'Erro de conectividade',
