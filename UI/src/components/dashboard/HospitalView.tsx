@@ -115,21 +115,6 @@ export const HospitalView = () => {
           </ResponsiveContainer>
         </ChartCard>
       </div>
-
-      {/* Hospital Comparison */}
-      <ChartCard title="Comparação entre Hospitais" className="w-full">
-        <ResponsiveContainer width="100%" height={400}>
-          <BarChart data={mockHospitalData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="name" angle={-45} textAnchor="end" height={100} />
-            <YAxis yAxisId="left" />
-            <YAxis yAxisId="right" orientation="right" />
-            <Tooltip />
-            <Bar yAxisId="left" dataKey="doctors" fill="hsl(var(--chart-1))" name="Médicos" />
-            <Bar yAxisId="right" dataKey="occupancy" fill="hsl(var(--chart-3))" name="Ocupação %" />
-          </BarChart>
-        </ResponsiveContainer>
-      </ChartCard>
     </div>
   );
 };

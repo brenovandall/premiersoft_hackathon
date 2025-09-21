@@ -1,7 +1,7 @@
 export const mockKPIData = {
   totalPatients: 1250000,
-  totalHospitals: 4580,
-  totalDoctors: 125000,
+  totalHospitals: 6844,
+  totalDoctors: 280000,
   averageOccupancy: 78,
 };
 

@@ -37,7 +37,7 @@ export const PatientsView = () => {
       </div>
 
       {/* Patient Demographics KPIs */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <KPICard
           title="Total de Pacientes"
           value={totalPatients.toLocaleString()}
@@ -59,29 +59,10 @@ export const PatientsView = () => {
           trend="neutral"
           icon={UserCheck}
         />
-        <KPICard
-          title="Idade Média"
-          value="52 anos"
-          change="Baseado em atendimentos"
-          trend="neutral"
-          icon={Users}
-        />
       </div>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ChartCard title="Distribuição por Idade e Gênero">
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={mockAgeGenderData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="ageGroup" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="male" fill="hsl(var(--chart-1))" name="Masculino" />
-              <Bar dataKey="female" fill="hsl(var(--chart-2))" name="Feminino" />
-            </BarChart>
-          </ResponsiveContainer>
-        </ChartCard>
+      <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
 
         <ChartCard title="Relação Médicos/Pacientes por Especialidade">
           <ResponsiveContainer width="100%" height={300}>
