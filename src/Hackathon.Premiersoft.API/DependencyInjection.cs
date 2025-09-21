@@ -1,12 +1,14 @@
 ﻿using Hackathon.Premiersoft.API.Data;
-using Hackathon.Premiersoft.API.Engines.DataProcess;
 using Hackathon.Premiersoft.API.Engines.Csv;
+using Hackathon.Premiersoft.API.Engines.DataProcess;
+using Hackathon.Premiersoft.API.Engines.DataProcess;
 using Hackathon.Premiersoft.API.Engines.DataProcess;
 using Hackathon.Premiersoft.API.Engines.Extensions;
 using Hackathon.Premiersoft.API.Engines.Factory;
 using Hackathon.Premiersoft.API.Engines.Interfaces;
 using Hackathon.Premiersoft.API.Engines.Xml;
 using Hackathon.Premiersoft.API.Messaging.MassTransit;
+using Hackathon.Premiersoft.API.Models;
 using Hackathon.Premiersoft.API.Repository;
 using Hackathon.Premiersoft.API.Repository.Municipios;
 using Hackathon.Premiersoft.API.Repository.MunicipiosRepo;
@@ -14,7 +16,6 @@ using Hackathon.Premiersoft.API.Services.ImportFiles;
 using Hackathon.Premiersoft.API.SharedKernel;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
-using Hackathon.Premiersoft.API.Engines.DataProcess;
 
 namespace Hackathon.Premiersoft.API
 {
@@ -75,6 +76,7 @@ namespace Hackathon.Premiersoft.API
             
             // Registrar repositórios específicos
             services.AddScoped<IMunicipiosRepository, MunicipiosRepository>();
+ 
 
             services.AddScoped<IImportFilesService, ImportFilesService>();
             services.AddTransient<IDomainEventsDispatcher, DomainEventsDispatcher>();

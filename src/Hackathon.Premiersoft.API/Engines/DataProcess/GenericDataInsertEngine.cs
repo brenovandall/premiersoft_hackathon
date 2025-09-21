@@ -1,26 +1,28 @@
-﻿// Engines/DataProcess/GenericDataInsertEngine.cs
-
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Globalization;
 using System.Reflection;
+using Hackathon.Premiersoft.API.Data;
 using Hackathon.Premiersoft.API.Dto;
-using Hackathon.Premiersoft.API.Repository; // Namespace do IRepository
-using Hackathon.Premiersoft.API.Models.Abstractions; // Namespace do Entity<Tid>
+using Hackathon.Premiersoft.API.Repository;
+using Hackathon.Premiersoft.API.Models.Abstractions;
+using System.Threading;
 
-// A restrição "where" foi atualizada para corresponder à do IRepository
 public class GenericDataInsertEngine<TEntity, TId>
-    where TEntity : Entity<TId>, new() // Adicionado Entity<TId> e mantido new()
+    where TEntity : Entity<TId>, new()
 {
     private readonly IRepository<TEntity, TId> _repository;
- 
-    public GenericDataInsertEngine(IRepository<TEntity, TId> repository)
+    private readonly IPremiersoftHackathonDbContext _dbContext;
+
+    public GenericDataInsertEngine(IRepository<TEntity, TId> repository, IPremiersoftHackathonDbContext dbContext)
     {
         _repository = repository ?? throw new ArgumentNullException(nameof(repository));
-     }
+        _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+    }
 
     public async Task<DataProcessingResult<TEntity>> ProcessAndInsertAsync(
         IEnumerable<CsvRow> rows,
-        Dictionary<string, string> columnMapping)
+        Dictionary<string, string> columnMapping,
+        CancellationToken cancellationToken = default)
     {
         var result = new DataProcessingResult<TEntity> { TotalRowsProcessed = rows.Count() };
         var entitiesToInsert = new List<TEntity>();
@@ -30,8 +32,9 @@ public class GenericDataInsertEngine<TEntity, TId>
 
         foreach (var row in rows)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var entity = new TEntity();
-            bool isRowValid = true;
 
             foreach (var mapping in columnMapping)
             {
@@ -59,20 +62,15 @@ public class GenericDataInsertEngine<TEntity, TId>
                             RawValue = sourceValue,
                             ErrorMessage = $"Erro de conversão para '{targetProperty}': {ex.Message}"
                         });
-                        isRowValid = false;
-                        // O 'break' foi comentado para registrar todos os erros da linha, não apenas o primeiro.
-                        // break; 
+
+                        // Continua o processo mesmo com erro, não marca como inválido
                     }
                 }
             }
 
-            if (isRowValid)
-            {
-                entitiesToInsert.Add(entity);
-            }
+            entitiesToInsert.Add(entity); // Sempre adiciona a entidade, mesmo com erros
         }
 
-        // Se houver entidades válidas, adiciona uma por uma usando o repositório
         if (entitiesToInsert.Any())
         {
             foreach (var entity in entitiesToInsert)
@@ -80,15 +78,31 @@ public class GenericDataInsertEngine<TEntity, TId>
                 _repository.Add(entity);
             }
 
-            // Salva todas as mudanças de uma vez usando a Unidade de Trabalho
-          //  await _unitOfWork.SaveChangesAsync();
-            result.SuccessfulInserts.AddRange(entitiesToInsert);
+            try
+            {
+                await _dbContext.SaveChangesAsync(cancellationToken);
+                result.SuccessfulInserts.AddRange(entitiesToInsert);
+            }
+            catch (Exception ex)
+            {
+                // Falha na persistência (ex: restrições de banco, etc.)
+                foreach (var entity in entitiesToInsert)
+                {
+                    result.Errors.Add(new DataProcessingError
+                    {
+                        RowIndex = -1,
+                        ColumnName = string.Empty,
+                        RawValue = string.Empty,
+                        ErrorMessage = $"Erro ao salvar entidade no banco de dados: {ex.Message}"
+                    });
+                }
+            }
         }
 
         return result;
     }
 
-    // O método ConvertValue permanece exatamente o mesmo
+
     private object? ConvertValue(object? sourceValue, Type targetType)
     {
         if (sourceValue == null || (sourceValue is string s && string.IsNullOrWhiteSpace(s)))

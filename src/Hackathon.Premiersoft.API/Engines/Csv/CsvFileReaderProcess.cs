@@ -1,4 +1,5 @@
-﻿using Hackathon.Premiersoft.API.Dto;
+﻿using Hackathon.Premiersoft.API.Data;
+using Hackathon.Premiersoft.API.Dto;
 using Hackathon.Premiersoft.API.Engines.Interfaces;
 using Hackathon.Premiersoft.API.Models;
 using Hackathon.Premiersoft.API.Repository;
@@ -14,11 +15,12 @@ namespace Hackathon.Premiersoft.API.Engines.Csv
         public string FileReaderProvider => Extensions.FileReaderProvider.CsvReaderProvider;
   
         private IRepository<Municipios, Guid> MunicipiosRepository { get; set; }
+        private IPremiersoftHackathonDbContext DbContext { get; set; }
 
- 
-        public CsvFileReaderProcess( IRepository<Municipios, Guid> municipiosRepository)
+        public CsvFileReaderProcess( IRepository<Municipios, Guid> municipiosRepository, IPremiersoftHackathonDbContext dbContext)
         {
             MunicipiosRepository = municipiosRepository;
+            DbContext = dbContext;
         }
 
 
@@ -48,9 +50,7 @@ namespace Hackathon.Premiersoft.API.Engines.Csv
 
         public async Task ImportarMunicipiosAsync(CsvMappedData csvData)
         {
-            // 1. DEFINIR O "DE-PARA" (Mapeamento)
-            // Key: Nome da coluna no arquivo (já normalizado pelo seu leitor)
-            // Value: Nome da propriedade na sua entidade `Municipios`
+           
             var mapeamentoMunicipios = new Dictionary<string, string>
             {
                 { "codigo_ibge", nameof(Municipios.Codigo_ibge) },
@@ -64,15 +64,12 @@ namespace Hackathon.Premiersoft.API.Engines.Csv
                 { "fuso_horario", nameof(Municipios.Fuso_horario) }
             };
 
-            var engine = new GenericDataInsertEngine<Municipios, Guid>(MunicipiosRepository);
+           var engine = new GenericDataInsertEngine<Municipios, Guid>(MunicipiosRepository, DbContext);
 
 
             var result = await engine.ProcessAndInsertAsync(csvData.Rows, mapeamentoMunicipios);
 
-            // 4. ANALISAR E LOGAR O RESULTADO
-            Console.WriteLine($"[DataImportService] Processamento de Municípios concluído.");
-            Console.WriteLine($"--> Sucesso: {result.SuccessCount} linhas inseridas.");
-            Console.WriteLine($"--> Erros: {result.ErrorCount} linhas com erro.");
+      
 
             if (result.HasErrors)
             {

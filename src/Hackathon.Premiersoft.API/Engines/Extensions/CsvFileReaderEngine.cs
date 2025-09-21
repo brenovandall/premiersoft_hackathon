@@ -31,12 +31,12 @@ namespace Hackathon.Premiersoft.API.Engines.Extensions
             {
                 try
                 {
-                    var import = Import.GetById(importId) ?? throw new Exception("Importação não encontrado!");
+                  //  var import = Import.GetById(importId) ?? throw new Exception("Importação não encontrado!");
 
-                    if (string.IsNullOrEmpty(import.S3PreSignedUrl))
+                    if (string.IsNullOrEmpty(key))
                         throw new Exception("URL do arquivo não encontrado!");
                     // 3. Pass the required repository instance to the constructor
-                    await CsvFileReaderProcess.ProcessarArquivoEmBackground(import.S3PreSignedUrl);
+                    await CsvFileReaderProcess.ProcessarArquivoEmBackground(key);
 
                      
                 }
