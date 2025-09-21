@@ -2,6 +2,7 @@
 using Hackathon.Premiersoft.API.Dto;
 using Hackathon.Premiersoft.API.Models;
 using Hackathon.Premiersoft.API.Repository;
+using Microsoft.EntityFrameworkCore;
 
 namespace Hackathon.Premiersoft.API.Services.ImportFiles
 {
@@ -35,7 +36,7 @@ namespace Hackathon.Premiersoft.API.Services.ImportFiles
 
         public IList<Import> GetAll()
         {
-            return _repository.GetAll();
+            return [.. _dbContext.Imports.Include(x => x.LineErrors)];
         }
     }
 }

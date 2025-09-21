@@ -2,6 +2,7 @@
 using Hackathon.Premiersoft.API.Models.Abstractions;
 using Hackathon.Premiersoft.API.Models.Enums;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Hackathon.Premiersoft.API.Models
 {
@@ -36,7 +37,7 @@ namespace Hackathon.Premiersoft.API.Models
 
         public DateTime? FinishedOn { get; private set; }
 
-        public ICollection<LineError> LineErrors { get; private set; } = [];
+        public List<LineError> LineErrors { get; private set; } = [];
 
         protected Import() { }
 
