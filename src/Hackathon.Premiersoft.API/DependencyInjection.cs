@@ -1,5 +1,7 @@
 ﻿using Hackathon.Premiersoft.API.Data;
 using Hackathon.Premiersoft.API.Engines.DataProcess;
+using Hackathon.Premiersoft.API.Engines.Csv;
+using Hackathon.Premiersoft.API.Engines.DataProcess;
 using Hackathon.Premiersoft.API.Engines.Extensions;
 using Hackathon.Premiersoft.API.Engines.Factory;
 using Hackathon.Premiersoft.API.Engines.Interfaces;
@@ -59,11 +61,13 @@ namespace Hackathon.Premiersoft.API
         {
             services.AddScoped<IFileReaderEngineFactory, FileReaderEngineFactory>();
             services.AddScoped<IFileReaderEngine, ExcelFileReader>();
+            services.AddScoped<IFileReaderEngine, CsvFileReaderEngine>();
             //services.AddScoped<IFileReaderEngine, ExcelFileReaderEngine>();
             services.AddScoped<IEntityFactory, EntityFactory>();
             services.AddScoped<IMunicipiosRepository, MunicipiosRepository>();
             services.AddScoped<IPacientesHandler, PacientesHandler>();
             services.AddScoped<IMedicosHandler, MedicosHandler>();
+            services.AddScoped<ICsvFileReaderProcess, CsvFileReaderProcess>();  // Register CsvFileReaderProcess
 
             // Registrar handlers necessários
             services.AddScoped<IMedicosHandler, MedicosHandler>();
@@ -79,6 +83,8 @@ namespace Hackathon.Premiersoft.API
                             .AddClasses(classes => classes.AssignableTo(typeof(IDomainEventHandler<>)), publicOnly: false)
                             .AsImplementedInterfaces()
                             .WithScopedLifetime());
+
+
 
             return services;
         }
