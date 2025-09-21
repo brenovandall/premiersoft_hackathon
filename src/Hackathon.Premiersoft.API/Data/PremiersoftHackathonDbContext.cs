@@ -29,6 +29,36 @@ namespace Hackathon.Premiersoft.API.Data
         public DbSet<Import> Imports { get; set; }
         public DbSet<LineError> LineErrors { get; set; }
         public DbSet<Lookup> Lookups { get; set; }
+        public DbSet<DoctorsHospitals> DoctorsHospitals { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<DoctorsHospitals>()
+                .HasOne(dh => dh.Doctor)
+                .WithMany(m => m.DoctorsHospitals)
+                .HasForeignKey(dh => dh.DoctorId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<DoctorsHospitals>()
+                .HasOne(dh => dh.Hospital)
+                .WithMany(h => h.DoctorsHospitals)
+                .HasForeignKey(dh => dh.HospitalId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<PatientsHospitals>()
+                .HasOne(ph => ph.Patient)
+                .WithMany(p => p.PatientsHospitals)
+                .HasForeignKey(ph => ph.PatientId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<PatientsHospitals>()
+                .HasOne(ph => ph.Hospital)
+                .WithMany(h => h.PatientsHospitals)
+                .HasForeignKey(ph => ph.HospitalId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            base.OnModelCreating(modelBuilder);
+        }
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {

@@ -15,6 +15,8 @@ namespace Hackathon.Premiersoft.API.Models
         [ForeignKey(nameof(MunicipioId))]
         public Municipios Codigo_Municipio { get; set; }
 
+        public ICollection<DoctorsHospitals> DoctorsHospitals { get; private set; } = [];
+
         public Medicos()
         {
             Id = Guid.NewGuid();

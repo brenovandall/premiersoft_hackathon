@@ -13,6 +13,7 @@ namespace Hackathon.Premiersoft.API.Data
         DbSet<Import> Imports { get; }
         DbSet<LineError> LineErrors { get; }
         DbSet<Lookup> Lookups { get; }
+        DbSet<DoctorsHospitals> DoctorsHospitals { get; }
 
         int SaveChanges();
         Task<int> SaveChangesAsync(CancellationToken cancellationToken);
