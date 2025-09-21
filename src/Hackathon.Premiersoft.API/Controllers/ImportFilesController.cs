@@ -19,9 +19,18 @@ namespace Hackathon.Premiersoft.API.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] ImportFilesRequest request, CancellationToken cancellationToken)
         {
-            await _importFilesService.Create(request, cancellationToken);
+            var import = await _importFilesService.Create(request, cancellationToken);
 
-            return Created();
+            return Ok(new 
+            { 
+                id = import.Id,
+                fileName = import.FileName,
+                dataType = import.DataType,
+                fileFormat = import.FileFormat,
+                status = import.Status,
+                importedOn = import.ImportedOn,
+                message = "Import criado com sucesso"
+            });
         }
 
         [HttpGet]

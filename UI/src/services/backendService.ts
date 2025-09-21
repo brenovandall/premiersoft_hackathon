@@ -116,17 +116,33 @@ export async function sendFileToBackend(data: BackendProcessingData): Promise<Ba
       throw new Error(`HTTP ${response.status}: ${errorText}`);
     }
 
-    const result = await response.json();
-    console.log('✅ Resposta do backend:', result);
+    // Verificar se há conteúdo na resposta antes de tentar fazer parse JSON
+    let result = null;
+    const contentLength = response.headers.get('content-length');
+    const contentType = response.headers.get('content-type');
+    
+    if (response.status !== 204 && contentLength !== '0' && contentType?.includes('application/json')) {
+      const responseText = await response.text();
+      if (responseText.trim()) {
+        try {
+          result = JSON.parse(responseText);
+        } catch (parseError) {
+          console.warn('⚠️ Resposta não é JSON válido:', responseText);
+          result = { message: responseText };
+        }
+      }
+    }
+    
+    console.log('✅ Resposta do backend:', { status: response.status, data: result });
     
     return {
       success: true,
       message: 'Importação criada com sucesso',
       data: {
-        id: result.id,
-        processingId: result.id?.toString() || `import_${Date.now()}`,
+        id: result?.id || Date.now(),
+        processingId: result?.id?.toString() || `import_${Date.now()}`,
         estimatedTime: 30,
-        status: result.status || 'pending'
+        status: result?.status || 'pending'
       },
     };
 

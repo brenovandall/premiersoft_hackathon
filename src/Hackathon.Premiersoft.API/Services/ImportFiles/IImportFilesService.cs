@@ -5,7 +5,7 @@ namespace Hackathon.Premiersoft.API.Services.ImportFiles
 {
     public interface IImportFilesService
     {
-        Task Create(ImportFilesRequest request, CancellationToken cancellationToken);
+        Task<Import> Create(ImportFilesRequest request, CancellationToken cancellationToken);
         IList<Import> GetAll();
     }
 }

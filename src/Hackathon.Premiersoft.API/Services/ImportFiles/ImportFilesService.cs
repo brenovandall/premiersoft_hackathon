@@ -16,12 +16,14 @@ namespace Hackathon.Premiersoft.API.Services.ImportFiles
             _repository = repository;
         }
 
-        public async Task Create(ImportFilesRequest request, CancellationToken cancellationToken)
+        public async Task<Import> Create(ImportFilesRequest request, CancellationToken cancellationToken)
         {
             var import = Import.Create(request.DataType, request.FileFormat, request.FileName, request.S3PreSignedUrl);
 
             _dbContext.Imports.Add(import);
             await _dbContext.SaveChangesAsync(cancellationToken);
+            
+            return import;
         }
 
         public IList<Import> GetAll()
