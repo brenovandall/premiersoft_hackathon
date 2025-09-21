@@ -37,16 +37,16 @@ const API_CONFIG = {
  */
 function convertDataType(dataType: DataType): number {
   const mapping: Record<DataType, number> = {
-    "municipios": 1,
-    "estados": 2, 
-    "medicos": 3,
-    "hospitais": 4,
-    "pacientes": 5,
-    "cid10": 6,
-    "hospitals": 4,
-    "doctors": 3,
-    "patients": 5,
-    "locations": 1
+    "hospitais": 0,
+    "medicos": 1,
+    "pacientes": 2,
+    "estados": 3, 
+    "municipios": 4,
+    "cid10": 5,
+    "hospitals": 6,
+    "doctors": 7,
+    "patients": 8,
+    "locations": 9
   };
   return mapping[dataType] || 1;
 }

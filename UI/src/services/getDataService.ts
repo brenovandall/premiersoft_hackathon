@@ -12,9 +12,11 @@ import {
   DoctorSearchDto,
   PatientStatsDto,
   HealthResponse 
-} from '@/types/getdata';// Configuração da API GetData
+} from '@/types/getdata';
+
+// Configuração da API GetData
 const GETDATA_API_CONFIG = {
-  baseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/v1/ImportFiles',
+  baseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/v1',
   timeout: 30000, // 30 segundos
 };
 
@@ -82,91 +84,91 @@ export class GetDataService {
    * Verifica se a API está funcionando
    */
   static async healthCheck(): Promise<HealthResponse> {
-    return apiRequest<HealthResponse>('/health');
+    return apiRequest<HealthResponse>('/ImportFiles/health');
   }
 
   /**
    * Busca todos os estados
    */
   static async getEstados(): Promise<EstadoDto[]> {
-    return apiRequest<EstadoDto[]>('/estados');
+    return apiRequest<EstadoDto[]>('/ImportFiles/estados');
   }
 
   /**
    * Busca todos os municípios
    */
   static async getMunicipios(): Promise<MunicipioDto[]> {
-    return apiRequest<MunicipioDto[]>('/municipios');
+    return apiRequest<MunicipioDto[]>('/ImportFiles/municipios');
   }
 
   /**
    * Busca municípios por estado
    */
   static async getMunicipiosByEstado(codigoUf: string): Promise<MunicipioDto[]> {
-    return apiRequest<MunicipioDto[]>(`/municipios/estado/${encodeURIComponent(codigoUf)}`);
+    return apiRequest<MunicipioDto[]>(`/ImportFiles/municipios/estado/${encodeURIComponent(codigoUf)}`);
   }
 
   /**
    * Busca todos os pacientes
    */
   static async getPacientes(): Promise<PacienteDto[]> {
-    return apiRequest<PacienteDto[]>('/pacientes');
+    return apiRequest<PacienteDto[]>('/ImportFiles/pacientes');
   }
 
   /**
    * Busca todos os médicos
    */
   static async getMedicos(): Promise<MedicoDto[]> {
-    return apiRequest<MedicoDto[]>('/medicos');
+    return apiRequest<MedicoDto[]>('/ImportFiles/medicos');
   }
 
   /**
    * Busca todos os hospitais
    */
   static async getHospitais(): Promise<HospitalDto[]> {
-    return apiRequest<HospitalDto[]>('/hospitais');
+    return apiRequest<HospitalDto[]>('/ImportFiles/hospitais');
   }
 
   /**
    * Busca lista de hospitais para seleção
    */
   static async getHospitalsList(): Promise<HospitalListDto[]> {
-    return apiRequest<HospitalListDto[]>('/hospitais/list');
+    return apiRequest<HospitalListDto[]>('/ImportFiles/hospitais/list');
   }
 
   /**
    * Busca detalhes específicos de um hospital
    */
   static async getHospitalDetails(hospitalId: number): Promise<HospitalDetailsDto> {
-    return apiRequest<HospitalDetailsDto>(`/hospitais/${hospitalId}/details`);
+    return apiRequest<HospitalDetailsDto>(`/ImportFiles/hospitais/${hospitalId}/details`);
   }
 
   /**
    * Busca especialidades médicas de um hospital específico
    */
   static async getHospitalSpecialties(hospitalId: number): Promise<HospitalSpecialtyDto[]> {
-    return apiRequest<HospitalSpecialtyDto[]>(`/hospitais/${hospitalId}/especialidades`);
+    return apiRequest<HospitalSpecialtyDto[]>(`/ImportFiles/hospitais/${hospitalId}/especialidades`);
   }
 
   /**
    * Busca dados demográficos de pacientes
    */
   static async getPatientDemographics(): Promise<PatientDemographicDto[]> {
-    return apiRequest<PatientDemographicDto[]>('/pacientes/demographics');
+    return apiRequest<PatientDemographicDto[]>('/ImportFiles/pacientes/demographics');
   }
 
   /**
    * Busca estatísticas gerais de pacientes
    */
   static async getPatientStats(): Promise<PatientStatsDto> {
-    return apiRequest<PatientStatsDto>('/pacientes/stats');
+    return apiRequest<PatientStatsDto>('/ImportFiles/pacientes/stats');
   }
 
   /**
    * Busca estatísticas de médicos por especialidade
    */
   static async getDoctorSpecialtyStats(): Promise<DoctorSpecialtyStatsDto[]> {
-    return apiRequest<DoctorSpecialtyStatsDto[]>('/medicos/specialty-stats');
+    return apiRequest<DoctorSpecialtyStatsDto[]>('/ImportFiles/medicos/specialty-stats');
   }
 
   /**
@@ -178,7 +180,7 @@ export class GetDataService {
     if (specialty) params.append('specialty', specialty);
     
     const queryString = params.toString();
-    const endpoint = queryString ? `/medicos/search?${queryString}` : '/medicos/search';
+    const endpoint = queryString ? `/ImportFiles/medicos/search?${queryString}` : '/ImportFiles/medicos/search';
     
     return apiRequest<DoctorSearchDto[]>(endpoint);
   }
