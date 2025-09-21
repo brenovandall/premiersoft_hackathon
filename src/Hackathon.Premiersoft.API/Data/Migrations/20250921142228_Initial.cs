@@ -25,28 +25,6 @@ namespace Hackathon.Premiersoft.API.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Cidades",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Codigo_ibge = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Nome = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Latitude = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Longitude = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Capital = table.Column<bool>(type: "bit", nullable: false),
-                    Codigo_uf = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Siafi_id = table.Column<int>(type: "int", nullable: false),
-                    Ddd = table.Column<int>(type: "int", nullable: false),
-                    Fuso_horario = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Populacao = table.Column<int>(type: "int", nullable: false),
-                    Erros = table.Column<string>(type: "nvarchar(max)", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Cidades", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Estados",
                 columns: table => new
                 {
@@ -86,74 +64,44 @@ namespace Hackathon.Premiersoft.API.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Hospitais",
+                name: "Municipios",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Codigo = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Codigo_ibge = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Nome = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Bairro = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CidadeId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Leitos_totais = table.Column<long>(type: "bigint", nullable: false)
+                    Latitude = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Longitude = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Capital = table.Column<bool>(type: "bit", nullable: false),
+                    Codigo_uf = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Siafi_id = table.Column<int>(type: "int", nullable: false),
+                    Ddd = table.Column<int>(type: "int", nullable: false),
+                    Fuso_horario = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Populacao = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Hospitais", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Hospitais_Cidades_CidadeId",
-                        column: x => x.CidadeId,
-                        principalTable: "Cidades",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                    table.PrimaryKey("PK_Municipios", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Medicos",
+                name: "Cid10Especialidades",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Codigo = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Nome_completo = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Especialidade = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    MunicipioId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                    Cid10Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Especialidade = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Prioridade = table.Column<int>(type: "int", nullable: false),
+                    EspecialidadePrimaria = table.Column<bool>(type: "bit", nullable: false),
+                    Observacoes = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Medicos", x => x.Id);
+                    table.PrimaryKey("PK_Cid10Especialidades", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Medicos_Cidades_MunicipioId",
-                        column: x => x.MunicipioId,
-                        principalTable: "Cidades",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Pacientes",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Codigo_MunicipioId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Codigo = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Cpf = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Genero = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Nome_completo = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Convenio = table.Column<bool>(type: "bit", nullable: false),
-                    Cid10Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Pacientes", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Pacientes_Cid10_Cid10Id",
+                        name: "FK_Cid10Especialidades_Cid10_Cid10Id",
                         column: x => x.Cid10Id,
                         principalTable: "Cid10",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Pacientes_Cidades_Codigo_MunicipioId",
-                        column: x => x.Codigo_MunicipioId,
-                        principalTable: "Cidades",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -200,6 +148,146 @@ namespace Hackathon.Premiersoft.API.Data.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "Hospitais",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Codigo = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Nome = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Bairro = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Especialidades = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CidadeId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Leitos_totais = table.Column<long>(type: "bigint", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Hospitais", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Hospitais_Municipios_CidadeId",
+                        column: x => x.CidadeId,
+                        principalTable: "Municipios",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Medicos",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Codigo = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Nome_completo = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Especialidade = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    MunicipioId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Medicos", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Medicos_Municipios_MunicipioId",
+                        column: x => x.MunicipioId,
+                        principalTable: "Municipios",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Pacientes",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Codigo_MunicipioId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Codigo = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Cpf = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Genero = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Nome_completo = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Convenio = table.Column<bool>(type: "bit", nullable: false),
+                    Cid10Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Pacientes", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Pacientes_Cid10_Cid10Id",
+                        column: x => x.Cid10Id,
+                        principalTable: "Cid10",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Pacientes_Municipios_Codigo_MunicipioId",
+                        column: x => x.Codigo_MunicipioId,
+                        principalTable: "Municipios",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "DoctorsHospitals",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    DoctorId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    HospitalId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DoctorsHospitals", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_DoctorsHospitals_Hospitais_HospitalId",
+                        column: x => x.HospitalId,
+                        principalTable: "Hospitais",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_DoctorsHospitals_Medicos_DoctorId",
+                        column: x => x.DoctorId,
+                        principalTable: "Medicos",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PatientsHospitals",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    PatientId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    HospitalId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    DataAlocacao = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Distancia = table.Column<double>(type: "float", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Observacoes = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    Prioridade = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PatientsHospitals", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PatientsHospitals_Hospitais_HospitalId",
+                        column: x => x.HospitalId,
+                        principalTable: "Hospitais",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_PatientsHospitals_Pacientes_PatientId",
+                        column: x => x.PatientId,
+                        principalTable: "Pacientes",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Cid10Especialidades_Cid10Id",
+                table: "Cid10Especialidades",
+                column: "Cid10Id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DoctorsHospitals_DoctorId",
+                table: "DoctorsHospitals",
+                column: "DoctorId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_DoctorsHospitals_HospitalId",
+                table: "DoctorsHospitals",
+                column: "HospitalId");
+
             migrationBuilder.CreateIndex(
                 name: "IX_Hospitais_CidadeId",
                 table: "Hospitais",
@@ -229,16 +317,29 @@ namespace Hackathon.Premiersoft.API.Data.Migrations
                 name: "IX_Pacientes_Codigo_MunicipioId",
                 table: "Pacientes",
                 column: "Codigo_MunicipioId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PatientsHospitals_HospitalId",
+                table: "PatientsHospitals",
+                column: "HospitalId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PatientsHospitals_PatientId",
+                table: "PatientsHospitals",
+                column: "PatientId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Estados");
+                name: "Cid10Especialidades");
 
             migrationBuilder.DropTable(
-                name: "Hospitais");
+                name: "DoctorsHospitals");
+
+            migrationBuilder.DropTable(
+                name: "Estados");
 
             migrationBuilder.DropTable(
                 name: "LineErrors");
@@ -247,19 +348,25 @@ namespace Hackathon.Premiersoft.API.Data.Migrations
                 name: "Lookups");
 
             migrationBuilder.DropTable(
-                name: "Medicos");
+                name: "PatientsHospitals");
 
             migrationBuilder.DropTable(
-                name: "Pacientes");
+                name: "Medicos");
 
             migrationBuilder.DropTable(
                 name: "Imports");
 
             migrationBuilder.DropTable(
+                name: "Hospitais");
+
+            migrationBuilder.DropTable(
+                name: "Pacientes");
+
+            migrationBuilder.DropTable(
                 name: "Cid10");
 
             migrationBuilder.DropTable(
-                name: "Cidades");
+                name: "Municipios");
         }
     }
 }

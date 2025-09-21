@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Hackathon.Premiersoft.API.Data.Migrations
 {
     [DbContext(typeof(PremiersoftHackathonDbContext))]
-    [Migration("20250921081351_RemovendoColunaEroo")]
-    partial class RemovendoColunaEroo
+    [Migration("20250921142228_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -42,6 +42,37 @@ namespace Hackathon.Premiersoft.API.Data.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Cid10");
+                });
+
+            modelBuilder.Entity("Hackathon.Premiersoft.API.Models.Cid10Especialidade", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("Cid10Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Especialidade")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("EspecialidadePrimaria")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Observacoes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("Prioridade")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Cid10Id");
+
+                    b.ToTable("Cid10Especialidades");
                 });
 
             modelBuilder.Entity("Hackathon.Premiersoft.API.Models.DoctorsHospitals", b =>
@@ -304,7 +335,7 @@ namespace Hackathon.Premiersoft.API.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Cidades");
+                    b.ToTable("Municipios");
                 });
 
             modelBuilder.Entity("Hackathon.Premiersoft.API.Models.Pacientes", b =>
@@ -353,11 +384,29 @@ namespace Hackathon.Premiersoft.API.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<DateTime>("DataAlocacao")
+                        .HasColumnType("datetime2");
+
+                    b.Property<double>("Distancia")
+                        .HasColumnType("float");
+
                     b.Property<Guid>("HospitalId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("Observacoes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<Guid>("PatientId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Prioridade")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.HasKey("Id");
 
@@ -366,6 +415,17 @@ namespace Hackathon.Premiersoft.API.Data.Migrations
                     b.HasIndex("PatientId");
 
                     b.ToTable("PatientsHospitals");
+                });
+
+            modelBuilder.Entity("Hackathon.Premiersoft.API.Models.Cid10Especialidade", b =>
+                {
+                    b.HasOne("Hackathon.Premiersoft.API.Models.Cid10", "Cid10")
+                        .WithMany()
+                        .HasForeignKey("Cid10Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Cid10");
                 });
 
             modelBuilder.Entity("Hackathon.Premiersoft.API.Models.DoctorsHospitals", b =>

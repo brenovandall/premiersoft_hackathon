@@ -8,7 +8,8 @@ namespace Hackathon.Premiersoft.API.Models
         public string Nome { get; set; }
         public string Bairro { get; set; }
         public string Especialidades { get; set; }
-        public Municipios Cidade { get; set; }
+        public long? MunicipioId { get; set; }
+        public Municipios? Municipio { get; set; }
         public long Leitos_totais { get; set; }
 
         public ICollection<DoctorsHospitals> DoctorsHospitals { get; private set; } = [];

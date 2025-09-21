@@ -272,12 +272,12 @@ namespace Hackathon.Premiersoft.API.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("Codigo_MunicipioId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<string>("Especialidade")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("MunicipioId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Nome_completo")
                         .IsRequired()
@@ -285,7 +285,7 @@ namespace Hackathon.Premiersoft.API.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Codigo_MunicipioId");
+                    b.HasIndex("MunicipioId");
 
                     b.ToTable("Medicos");
                 });
@@ -332,7 +332,7 @@ namespace Hackathon.Premiersoft.API.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Cidades");
+                    b.ToTable("Municipios");
                 });
 
             modelBuilder.Entity("Hackathon.Premiersoft.API.Models.Pacientes", b =>
@@ -481,7 +481,7 @@ namespace Hackathon.Premiersoft.API.Data.Migrations
                 {
                     b.HasOne("Hackathon.Premiersoft.API.Models.Municipios", "Codigo_Municipio")
                         .WithMany()
-                        .HasForeignKey("Codigo_MunicipioId")
+                        .HasForeignKey("MunicipioId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

@@ -24,7 +24,7 @@ namespace Hackathon.Premiersoft.API.Messaging.EventConsumers
                 .ToListAsync();
 
             var hospitals = await _dbContext.Hospitais
-                .Include(h => h.Cidade)
+                .Include(h => h.Municipio)
                 .Include(h => h.DoctorsHospitals)
                 .ToListAsync();
 
@@ -48,8 +48,8 @@ namespace Hackathon.Premiersoft.API.Messaging.EventConsumers
                     var dist = GeoUtils.CalculateDistance(
                         (double)doctor.Codigo_Municipio.Latitude,
                         (double)doctor.Codigo_Municipio.Longitude,
-                        (double)hospital.Cidade.Latitude,
-                        (double)hospital.Cidade.Longitude);
+                        (double)hospital.Municipio?.Latitude,
+                        (double)hospital.Municipio?.Longitude);
 
                     if (dist <= 30)
                     {
