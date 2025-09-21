@@ -3,3 +3,4 @@ export { MunicipiosCard } from './MunicipiosCard';
 export { PacientesCard } from './PacientesCard';
 export { MedicosCard } from './MedicosCard';
 export { HospitaisCard } from './HospitaisCard';
+export { UploadBackup } from './UploadBackup';

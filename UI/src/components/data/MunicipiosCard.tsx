@@ -9,9 +9,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useMunicipios, useEstados } from '@/hooks/useGetData';
 
 export function MunicipiosCard() {
-  const [selectedEstado, setSelectedEstado] = useState<string>('');
+  const [selectedEstado, setSelectedEstado] = useState<string>('todos');
   const { data: estados } = useEstados();
-  const { data: municipios, loading, error, refresh } = useMunicipios(selectedEstado || undefined);
+  const { data: municipios, loading, error, refresh } = useMunicipios(
+    selectedEstado === 'todos' ? undefined : selectedEstado
+  );
 
   const formatPopulacao = (populacao: number) => {
     return new Intl.NumberFormat('pt-BR').format(populacao);
@@ -57,7 +59,7 @@ export function MunicipiosCard() {
               <SelectValue placeholder="Filtrar por estado..." />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos os estados</SelectItem>
+              <SelectItem value="todos">Todos os estados</SelectItem>
               {estados.map((estado) => (
                 <SelectItem key={estado.codigo_uf} value={estado.codigo_uf.toString()}>
                   {estado.nome} ({estado.uf})

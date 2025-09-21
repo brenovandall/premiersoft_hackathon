@@ -11,7 +11,8 @@ import {
   MunicipiosCard, 
   PacientesCard, 
   MedicosCard, 
-  HospitaisCard 
+  HospitaisCard,
+  UploadBackup
 } from '@/components/data';
 
 function ApiStatusCard() {
@@ -89,6 +90,9 @@ export function DataDashboard() {
 
       {/* Status da API */}
       <ApiStatusCard />
+
+      {/* Upload de Backup */}
+      <UploadBackup />
 
       {/* Grid de Cards de Dados */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
