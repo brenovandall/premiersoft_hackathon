@@ -35,7 +35,7 @@ namespace Hackathon.Premiersoft.API.Data
             var result = await base.SaveChangesAsync(cancellationToken);
 
             // aceita múltiplos complex types de Entity :)
-            await PublishDomainEvents<long>();
+            await PublishDomainEvents<Guid>();
 
             return result;
         }
