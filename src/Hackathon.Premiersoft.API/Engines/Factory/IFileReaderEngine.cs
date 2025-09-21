@@ -4,6 +4,6 @@
     {
         string FileReaderProvider { get; }
 
-        void Run(long importId);
+        void Run(Guid importId);
     }
 }

@@ -8,10 +8,10 @@ namespace Hackathon.Premiersoft.API.Engines.DataProcess
     public class PacientesHandler : IPacientesHandler
     {
         private IMunicipiosRepository MunicipiosRepository { get; set; }
-        private IRepository<LineError, long> ErrorLineRepo { get; set; }
-        private IRepository<Pacientes, long> PacientesRepository { get; set; } 
+        private IRepository<LineError, Guid> ErrorLineRepo { get; set; }
+        private IRepository<Pacientes, Guid> PacientesRepository { get; set; } 
 
-        public PacientesHandler(IMunicipiosRepository municipiosRepository, IRepository<LineError, long> errorLineRepo)
+        public PacientesHandler(IMunicipiosRepository municipiosRepository, IRepository<LineError, Guid> errorLineRepo)
         {
             MunicipiosRepository = municipiosRepository;
         }
@@ -51,7 +51,7 @@ namespace Hackathon.Premiersoft.API.Engines.DataProcess
 
                 if (CheckTag(tag, nameof(paciente.Cid10)))
                 {
-                    paciente.Cid10Id = long.TryParse(value, out var cid10Id)
+                    paciente.Cid10Id = Guid.TryParse(value, out var cid10Id)
                         ? cid10Id
                         : throw new Exception("Valor inválido para Cid10Id");
                 }

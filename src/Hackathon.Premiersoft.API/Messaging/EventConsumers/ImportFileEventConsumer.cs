@@ -2,6 +2,7 @@
 using Hackathon.Premiersoft.API.Engines.Factory;
 using Hackathon.Premiersoft.API.Messaging.Events;
 using Hackathon.Premiersoft.API.Models.Enums;
+using Hackathon.Premiersoft.API.Services;
 using MassTransit;
 
 namespace Hackathon.Premiersoft.API.Messaging.EventConsumers
@@ -19,11 +20,14 @@ namespace Hackathon.Premiersoft.API.Messaging.EventConsumers
 
         public async Task Consume(ConsumeContext<ImportFileEvent> context)
         {
-            var client = new HttpClient();
-            var request = new HttpRequestMessage(HttpMethod.Head, context.Message.PreSignedUrl);
-            var response = await client.SendAsync(request);
+            var s3Client = S3Service.GetS3Client();
 
-            var isFileReady = response.IsSuccessStatusCode;
+            var headResponse = await s3Client.GetObjectMetadataAsync(
+                "premiersoft-hackathon-uploads",
+                context.Message.PreSignedUrl
+            );
+
+            var isFileReady = headResponse.ContentLength > 0;
 
             if (isFileReady)
             {
@@ -36,6 +40,7 @@ namespace Hackathon.Premiersoft.API.Messaging.EventConsumers
                     return;
 
                 importEntity.UpdateStatus(ImportStatus.Processing);
+                _premiersoftHackathonDbContext.SaveChanges();
 
                 var fileExtension = ((ImportFileFormat)context.Message.FileFormat).ToString();
 
@@ -53,6 +58,7 @@ namespace Hackathon.Premiersoft.API.Messaging.EventConsumers
                 {
                     importEntity.UpdateStatus(ImportStatus.Done);
                 }
+                _premiersoftHackathonDbContext.SaveChanges();
             }
             else
             {

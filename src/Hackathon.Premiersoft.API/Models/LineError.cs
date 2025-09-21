@@ -4,10 +4,10 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Hackathon.Premiersoft.API.Models
 {
-    public class LineError : Entity<long>
+    public class LineError : Entity<Guid>
     {
         [Required]
-        public long ImportId { get; private set; }
+        public Guid ImportId { get; private set; }
 
         [ForeignKey(nameof(ImportId))]
         public Import Import { get; private set; } = default!;
@@ -26,8 +26,9 @@ namespace Hackathon.Premiersoft.API.Models
 
         protected LineError() { }
 
-        public LineError(long importId, Import import, long line, string field, string error, string value)
+        public LineError(Guid importId, Import import, long line, string field, string error, string value)
         {
+            Id = Id = Guid.NewGuid();
             ImportId = importId;
             Import = import;
             Line = line;

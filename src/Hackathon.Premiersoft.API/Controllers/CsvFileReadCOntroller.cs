@@ -20,7 +20,7 @@ namespace Hackathon.Premiersoft.API.Controllers
         {
 
             var csvFileReaderEngine = new Engines.Extensions.CsvFileReaderEngine();
-            csvFileReaderEngine.Run(0);
+            csvFileReaderEngine.Run(Guid.NewGuid());
             
 
             return Accepted(new { message = "Processamento iniciado em background" });

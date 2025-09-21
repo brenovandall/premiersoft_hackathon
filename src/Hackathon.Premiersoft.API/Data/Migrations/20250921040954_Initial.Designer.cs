@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Hackathon.Premiersoft.API.Data.Migrations
 {
     [DbContext(typeof(PremiersoftHackathonDbContext))]
-    [Migration("20250921023257_FixingIds")]
-    partial class FixingIds
+    [Migration("20250921040954_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -27,11 +27,9 @@ namespace Hackathon.Premiersoft.API.Data.Migrations
 
             modelBuilder.Entity("Hackathon.Premiersoft.API.Models.Cid10", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Codigo")
                         .IsRequired()
@@ -48,11 +46,9 @@ namespace Hackathon.Premiersoft.API.Data.Migrations
 
             modelBuilder.Entity("Hackathon.Premiersoft.API.Models.Estados", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("Codigo_uf")
                         .HasColumnType("int");
@@ -82,18 +78,16 @@ namespace Hackathon.Premiersoft.API.Data.Migrations
 
             modelBuilder.Entity("Hackathon.Premiersoft.API.Models.Hospitais", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Bairro")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<long>("CidadeId")
-                        .HasColumnType("bigint");
+                    b.Property<Guid>("CidadeId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Codigo")
                         .IsRequired()
@@ -115,11 +109,9 @@ namespace Hackathon.Premiersoft.API.Data.Migrations
 
             modelBuilder.Entity("Hackathon.Premiersoft.API.Models.Import", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("DataType")
                         .HasColumnType("int");
@@ -164,11 +156,9 @@ namespace Hackathon.Premiersoft.API.Data.Migrations
 
             modelBuilder.Entity("Hackathon.Premiersoft.API.Models.LineError", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Error")
                         .IsRequired()
@@ -178,8 +168,8 @@ namespace Hackathon.Premiersoft.API.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<long>("ImportId")
-                        .HasColumnType("bigint");
+                    b.Property<Guid>("ImportId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<long>("Line")
                         .HasColumnType("bigint");
@@ -197,18 +187,16 @@ namespace Hackathon.Premiersoft.API.Data.Migrations
 
             modelBuilder.Entity("Hackathon.Premiersoft.API.Models.Lookup", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("FileFieldName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<long>("ImportId")
-                        .HasColumnType("bigint");
+                    b.Property<Guid>("ImportId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("TableFieldName")
                         .IsRequired()
@@ -223,11 +211,9 @@ namespace Hackathon.Premiersoft.API.Data.Migrations
 
             modelBuilder.Entity("Hackathon.Premiersoft.API.Models.Medicos", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Codigo")
                         .IsRequired()
@@ -237,22 +223,25 @@ namespace Hackathon.Premiersoft.API.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<Guid>("MunicipioId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Nome_completo")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("MunicipioId");
+
                     b.ToTable("Medicos");
                 });
 
             modelBuilder.Entity("Hackathon.Premiersoft.API.Models.Municipios", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<bool>("Capital")
                         .HasColumnType("bit");
@@ -299,21 +288,19 @@ namespace Hackathon.Premiersoft.API.Data.Migrations
 
             modelBuilder.Entity("Hackathon.Premiersoft.API.Models.Pacientes", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+                        .HasColumnType("uniqueidentifier");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<long>("Cid10Id")
-                        .HasColumnType("bigint");
+                    b.Property<Guid>("Cid10Id")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Codigo")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<long>("Codigo_MunicipioId")
-                        .HasColumnType("bigint");
+                    b.Property<Guid>("Codigo_MunicipioId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<bool>("Convenio")
                         .HasColumnType("bit");
@@ -370,6 +357,17 @@ namespace Hackathon.Premiersoft.API.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Import");
+                });
+
+            modelBuilder.Entity("Hackathon.Premiersoft.API.Models.Medicos", b =>
+                {
+                    b.HasOne("Hackathon.Premiersoft.API.Models.Municipios", "Codigo_Municipio")
+                        .WithMany()
+                        .HasForeignKey("MunicipioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Codigo_Municipio");
                 });
 
             modelBuilder.Entity("Hackathon.Premiersoft.API.Models.Pacientes", b =>

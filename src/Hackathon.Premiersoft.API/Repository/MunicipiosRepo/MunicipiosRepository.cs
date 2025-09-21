@@ -14,7 +14,7 @@ namespace Hackathon.Premiersoft.API.Repository.Municipios
             return municipio is null ? throw new Exception("Não foi encontrado o municipio com o código ibge informado") : municipio;
         }
 
-        public Models.Municipios GetMunicipioById(long id)
+        public Models.Municipios GetMunicipioById(Guid id)
         {
             var municipio = _context.Set<Models.Municipios>().FirstOrDefault(x => x.Id == id);
             return municipio is null ? throw new Exception("Não foi encontrado o municipio com o código ibge informado") : municipio;

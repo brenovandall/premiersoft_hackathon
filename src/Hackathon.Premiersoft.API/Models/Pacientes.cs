@@ -4,10 +4,10 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Hackathon.Premiersoft.API.Models
 {
-    public class Pacientes : Entity<long>
+    public class Pacientes : Entity<Guid>
     {
         [Required]
-        public long Codigo_MunicipioId { get; set; }
+        public Guid Codigo_MunicipioId { get; set; }
 
         [ForeignKey(nameof(Codigo_MunicipioId))]
         public Municipios Codigo_Municipio { get; private set; } = default!;
@@ -18,9 +18,14 @@ namespace Hackathon.Premiersoft.API.Models
         public string Nome_completo { get; set; }
         public bool Convenio { get; set; }
         [Required]
-        public long Cid10Id { get; set; }
+        public Guid Cid10Id { get; set; }
 
         [ForeignKey(nameof(Cid10Id))]
         public Cid10 Cid10 { get; set; }
+
+        public Pacientes()
+        {
+            Id = Guid.NewGuid();
+        }
     }
 }

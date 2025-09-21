@@ -10,18 +10,18 @@ namespace Hackathon.Premiersoft.API.Engines.Extensions
 {
     public class XmlFileReader : IFileReaderEngine
     {
-        private IRepository<Import, long> Import { get; set; }
+        private IRepository<Import, Guid> Import { get; set; }
         private IXmlProcess XmlProcessEngine { get; set; }
         private IEntityFactory EntityFactory { get; set; }
         public string FileReaderProvider => Extensions.FileReaderProvider.XmlReaderProvider;
-        public XmlFileReader(IEntityFactory entityFactory, IXmlProcess xmlProcess, IRepository<Import, long> importsRepo)
+        public XmlFileReader(IEntityFactory entityFactory, IXmlProcess xmlProcess, IRepository<Import, Guid> importsRepo)
         {
             EntityFactory = entityFactory;
             XmlProcessEngine = xmlProcess;
             Import = importsRepo;
         }
 
-        public async void Run(long importId)
+        public async void Run(Guid importId)
         {
             var import = Import.GetById(importId) ?? throw new Exception("Importação não encontrado!");
 

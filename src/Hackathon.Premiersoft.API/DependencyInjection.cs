@@ -1,4 +1,5 @@
 ﻿using Hackathon.Premiersoft.API.Data;
+using Hackathon.Premiersoft.API.Engines.DataProcess;
 using Hackathon.Premiersoft.API.Engines.Extensions;
 using Hackathon.Premiersoft.API.Engines.Factory;
 using Hackathon.Premiersoft.API.Engines.Interfaces;
@@ -60,6 +61,9 @@ namespace Hackathon.Premiersoft.API
             services.AddScoped<IFileReaderEngine, ExcelFileReader>();
             //services.AddScoped<IFileReaderEngine, ExcelFileReaderEngine>();
             services.AddScoped<IEntityFactory, EntityFactory>();
+            services.AddScoped<IMunicipiosRepository, MunicipiosRepository>();
+            services.AddScoped<IPacientesHandler, PacientesHandler>();
+            services.AddScoped<IMedicosHandler, MedicosHandler>();
 
             // Registrar handlers necessários
             services.AddScoped<IMedicosHandler, MedicosHandler>();
