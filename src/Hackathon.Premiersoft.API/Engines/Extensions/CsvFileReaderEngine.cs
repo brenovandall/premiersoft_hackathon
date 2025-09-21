@@ -25,20 +25,19 @@ namespace Hackathon.Premiersoft.API.Engines.Extensions
         }
         public void Run(Guid importId)
         {
-            string key = "uploads/municipios/2025-09-20/1758407824810-municipios.csv";
 
+            var import = Import.GetById(importId) ?? throw new Exception("Importação não encontrado!");
             Task.Run(async () =>
             {
                 try
                 {
-                  //  var import = Import.GetById(importId) ?? throw new Exception("Importação não encontrado!");
 
-                    if (string.IsNullOrEmpty(key))
+                    if (string.IsNullOrEmpty(import.S3PreSignedUrl))
                         throw new Exception("URL do arquivo não encontrado!");
-                    // 3. Pass the required repository instance to the constructor
-                    await CsvFileReaderProcess.ProcessarArquivoEmBackground(key);
 
-                     
+                    await CsvFileReaderProcess.ProcessarArquivoEmBackground(import.S3PreSignedUrl);
+
+
                 }
                 catch (Exception ex)
                 {
