@@ -86,7 +86,7 @@ export interface MedicosSchema {
   codigo: string;
   nome_completo: string;
   especialidade: string;
-  cidade: string;
+  municipio_id: string;
 }
 
 export interface HospitaisSchema {
@@ -163,7 +163,7 @@ export const TABLE_SCHEMAS: Record<DataType, { label: string; fields: string[]; 
   },
   medicos: {
     label: "Médicos",
-    fields: ["codigo", "nome_completo", "especialidade", "cidade"],
+    fields: ["codigo", "nome_completo", "especialidade", "municipio_id"],
     description: "Cadastro de médicos"
   },
   hospitais: {
