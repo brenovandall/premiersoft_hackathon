@@ -9,14 +9,14 @@ namespace Hackathon.Premiersoft.API.Engines.DataProcess
     {
         private IMunicipiosRepository MunicipiosRepository { get; set; }
         private IRepository<LineError, long> ErrorLineRepo { get; set; }
-
+        private IRepository<Pacientes, long> PacientesRepository { get; set; } 
 
         public PacientesHandler(IMunicipiosRepository municipiosRepository, IRepository<LineError, long> errorLineRepo)
         {
             MunicipiosRepository = municipiosRepository;
         }
 
-        public Pacientes ProcessarPaciente(IEntityDto dto)
+        public void ProcessarPaciente(IEntityDto dto)
         {
             try
             {
@@ -56,7 +56,7 @@ namespace Hackathon.Premiersoft.API.Engines.DataProcess
                         : throw new Exception("Valor inválido para Cid10Id");
                 }
 
-                return paciente;
+                PacientesRepository.Add(paciente);
             }
             catch (Exception ex)
             {
@@ -73,7 +73,6 @@ namespace Hackathon.Premiersoft.API.Engines.DataProcess
                 ErrorLineRepo.Add(error);
             }
 
-            return null;
         }
 
         private bool CheckTag(string tag, string campo)

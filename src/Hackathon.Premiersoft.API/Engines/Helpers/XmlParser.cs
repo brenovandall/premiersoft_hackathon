@@ -1,4 +1,6 @@
 ﻿using Hackathon.Premiersoft.API.Dto;
+using Hackathon.Premiersoft.API.Models;
+using Hackathon.Premiersoft.API.Services;
 using System.Xml;
 
 namespace Hackathon.Premiersoft.API.Engines.Helpers
@@ -6,47 +8,46 @@ namespace Hackathon.Premiersoft.API.Engines.Helpers
     public class XmlParser
     {
         private List<FileXmlDto> FileXmlDtos { get; set; } = new List<FileXmlDto>();
-        private static Stream GenerateStreamFromString(string xml)
-        {
-            var stream = new MemoryStream();
-            var writer = new StreamWriter(stream);
-            writer.Write(xml);
-            writer.Flush();
-            stream.Position = 0;
-            return stream;
-        }
 
-        public List<FileXmlDto> ParseXml(string xml)
+        public async Task<List<FileXmlDto>> ParseXmlAsync(Import import)
         {
-            using Stream stream = GenerateStreamFromString(xml);
+            var s3Service = new S3Service();
 
-            XmlReaderSettings settings = new XmlReaderSettings
+            using var readerS3 = await s3Service.ObterLeitorDoArquivoAsync(import.S3PreSignedUrl);
+
+            var settings = new XmlReaderSettings
             {
                 Async = true,
                 IgnoreWhitespace = true
             };
 
-            using (XmlReader reader = XmlReader.Create(stream, settings))
+            using (var xmlReader = XmlReader.Create(readerS3, settings))
             {
-                while (reader.Read())
+                while (await xmlReader.ReadAsync())
                 {
-                    if (reader.NodeType == XmlNodeType.Element)
+                    if (xmlReader.NodeType == XmlNodeType.Element)
                     {
-                        string tagName = reader.Name;
+                        string tagName = xmlReader.Name;
 
-                        if (reader.Read() && reader.NodeType == XmlNodeType.Text)
+                        if (await xmlReader.ReadAsync() && xmlReader.NodeType == XmlNodeType.Text)
                         {
-                            string value = reader.Value;
+                            string value = xmlReader.Value;
 
                             if (!string.IsNullOrWhiteSpace(value))
                             {
                                 int lineNumber = 0;
-                                if (reader is IXmlLineInfo lineInfo && lineInfo.HasLineInfo())
+                                if (xmlReader is IXmlLineInfo lineInfo && lineInfo.HasLineInfo())
                                 {
                                     lineNumber = lineInfo.LineNumber;
                                 }
 
-                             //   FileXmlDtos.Add(new FileXmlDto().Criar(lineNumber, tagName, value));
+                                FileXmlDtos.Add(new FileXmlDto
+                                {
+                                    Import = import,
+                                    NumeroLinha = lineNumber,
+                                    Campo = tagName,
+                                    Valor = value
+                                });
 
                                 Console.WriteLine($"Line {lineNumber} - {tagName}: {value}");
                             }

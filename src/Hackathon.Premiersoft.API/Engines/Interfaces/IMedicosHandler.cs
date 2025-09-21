@@ -4,6 +4,6 @@ namespace Hackathon.Premiersoft.API.Engines.Interfaces
 {
     public interface IMedicosHandler
     {
-        public IEntity ProcessarMedidos(IEntityDto dto);
+        public void ProcessarMedicos(IEntityDto dto);
     }
 }
