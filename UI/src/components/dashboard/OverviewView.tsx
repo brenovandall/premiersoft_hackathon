@@ -1,6 +1,8 @@
 import { KPICard } from "./KPICard";
 import { ChartCard } from "./ChartCard";
 import { BrazilMap } from "./BrazilMap";
+import { DiseasesByRegion } from "./DiseasesByRegion";
+import { HospitalizationsByLocation } from "./HospitalizationsByLocation";
 import {
   BarChart,
   Bar,
@@ -103,41 +105,19 @@ export const OverviewView = () => {
         </ChartCard>
       </div>
 
-      {/* Second Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <ChartCard title="Médicos por Especialidade">
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={mockSpecialtyData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis
-                dataKey="specialty"
-                angle={-45}
-                textAnchor="end"
-                height={80}
-              />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="doctors" fill="hsl(var(--chart-1))" />
-            </BarChart>
-          </ResponsiveContainer>
-        </ChartCard>
+      {/* New Analysis Section */}
+      <div className="space-y-6">
+        <div>
+          <h3 className="text-xl font-semibold text-foreground mb-4">
+            Análise Regional e Epidemiológica
+          </h3>
+        </div>
 
-        <ChartCard title="Evolução Mensal de Pacientes">
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={mockMonthlyData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip />
-              <Line
-                type="monotone"
-                dataKey="patients"
-                stroke="hsl(var(--chart-1))"
-                strokeWidth={3}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </ChartCard>
+        {/* Regional Disease Analysis and Location-based Hospitalizations */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <DiseasesByRegion />
+          <HospitalizationsByLocation />
+        </div>
       </div>
     </div>
   );

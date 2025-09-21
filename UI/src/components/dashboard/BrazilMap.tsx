@@ -37,17 +37,16 @@ export const BrazilMap = () => {
 
   const getTextColor = (value: number) => {
     const intensity = value / maxValue;
-    // Texto escuro para fundos claros, texto claro para fundos escuros
     return intensity > 0.4 ? "#ffffff" : "#000000";
   };
 
   const getColor = (value: number) => {
     const intensity = value / maxValue;
     // Escala de verde (baixo) para vermelho (alto)
-    if (intensity > 0.8) return "#dc2626"; // Vermelho escuro
-    if (intensity > 0.6) return "#f87171"; // Vermelho claro
-    if (intensity > 0.4) return "#fbbf24"; // Amarelo/laranja
-    if (intensity > 0.2) return "#a3e635"; // Verde claro
+    if (intensity > 0.8) return "#dc2626";
+    if (intensity > 0.6) return "#f87171";
+    if (intensity > 0.4) return "#fbbf24";
+    if (intensity > 0.2) return "#a3e635";
     return "#22c55e"; // Verde
   };
 
