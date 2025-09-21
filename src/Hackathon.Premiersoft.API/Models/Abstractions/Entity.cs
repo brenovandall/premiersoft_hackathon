@@ -10,7 +10,6 @@ namespace Hackathon.Premiersoft.API.Models.Abstractions
         public List<IDomainEvent> DomainEvents => [.. _domainEvents];
 
         [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public T Id { get; set; } = default!;
 
         public void ClearDomainEvents()

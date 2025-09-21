@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Hackathon.Premiersoft.API.Models
 {
-    public class Import : Entity<long>
+    public class Import : Entity<Guid>
     {
         [Required]
         public ImportDataTypes DataType { get; private set; }
@@ -53,6 +53,7 @@ namespace Hackathon.Premiersoft.API.Models
             DateTime importedOn,
             DateTime? finishedOn = null)
         {
+            Id = Id = Guid.NewGuid();
             DataType = dataType;
             FileFormat = fileFormat;
             FileName = fileName;

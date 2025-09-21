@@ -13,7 +13,7 @@ namespace Hackathon.Premiersoft.API.Services
         private static readonly string bucketName = "premiersoft-hackathon-uploads";
         private static readonly RegionEndpoint region = RegionEndpoint.USEast1;
 
-        private static AmazonS3Client GetS3Client()
+        public static AmazonS3Client GetS3Client()
         {
             return new AmazonS3Client(accessKey, secretKey, region);
         }

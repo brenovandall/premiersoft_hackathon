@@ -10,10 +10,10 @@ namespace Hackathon.Premiersoft.API.Engines.DataProcess
     public class MedicosHandler : IMedicosHandler
     {
         private IMunicipiosRepository MunicipiosRepository { get; set; }
-        private IRepository<LineError, long> ErrorLineRepo { get; set; }
-        private IRepository<Medicos, long> MedicosRepository { get; set; }
+        private IRepository<LineError, Guid> ErrorLineRepo { get; set; }
+        private IRepository<Medicos, Guid> MedicosRepository { get; set; }
 
-        public MedicosHandler(IRepository<LineError, long> errorLineRepo, IMunicipiosRepository municipiosRepository, IRepository<Medicos, long> medicosRepository)
+        public MedicosHandler(IRepository<LineError, Guid> errorLineRepo, IMunicipiosRepository municipiosRepository, IRepository<Medicos, Guid> medicosRepository)
         {
             MedicosRepository = medicosRepository;
             MunicipiosRepository = municipiosRepository;

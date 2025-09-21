@@ -2,7 +2,7 @@
 
 namespace Hackathon.Premiersoft.API.Models
 {
-    public class Municipios : Entity<long>
+    public class Municipios : Entity<Guid>
     {
         public string Codigo_ibge { get; set; }
         public string Nome { get; set; }
@@ -15,5 +15,10 @@ namespace Hackathon.Premiersoft.API.Models
         public string Fuso_horario { get; set; }
         public int Populacao { get; set; }
         public string Erros { get; set; }
+
+        public Municipios()
+        {
+            Id = Guid.NewGuid();
+        }
     }
 }

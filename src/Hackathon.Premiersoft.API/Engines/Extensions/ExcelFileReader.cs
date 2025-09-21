@@ -6,7 +6,7 @@ namespace Hackathon.Premiersoft.API.Engines.Extensions
     {
         public string FileReaderProvider => Extensions.FileReaderProvider.ExcelReaderProvider;
 
-        public void Run(long importId)
+        public void Run(Guid importId)
         {
             throw new NotImplementedException();
         }

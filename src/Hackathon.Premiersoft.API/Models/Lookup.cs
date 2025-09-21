@@ -4,9 +4,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Hackathon.Premiersoft.API.Models
 {
-    public class Lookup : Entity<long>
+    public class Lookup : Entity<Guid>
     {
-        public long ImportId { get; set; }
+        public Guid ImportId { get; set; }
 
         [ForeignKey(nameof(ImportId))]
         public Import Import { get; set; } = default!;
@@ -19,8 +19,9 @@ namespace Hackathon.Premiersoft.API.Models
 
         protected Lookup() { }
 
-        public Lookup(long importId, Import import, string fileFieldName, string tableFieldName)
+        public Lookup(Guid importId, Import import, string fileFieldName, string tableFieldName)
         {
+            Id = Id = Guid.NewGuid();
             ImportId = importId;
             Import = import;
             FileFieldName = fileFieldName;

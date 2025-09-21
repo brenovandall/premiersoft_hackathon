@@ -9,7 +9,7 @@ namespace Hackathon.Premiersoft.API.Engines.Extensions
     {
         public string FileReaderProvider => "CsvFileReader";
 
-        public void Run(long importId)
+        public void Run(Guid importId)
         {
             string key = "uploads/municipios/2025-09-20/1758407824810-municipios.csv";
 

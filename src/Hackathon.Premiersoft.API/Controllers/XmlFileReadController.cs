@@ -14,8 +14,8 @@ namespace Hackathon.Premiersoft.API.Controllers
     public class XmlFileReadController : ControllerBase
     {
         private IFileReaderEngineFactory Factory { get; set; }
-        IRepository<Import, long> ImportRepository { get; set; }
-        public XmlFileReadController(IFileReaderEngineFactory factory, IRepository<Import, long> importRepo)
+        IRepository<Import, Guid> ImportRepository { get; set; }
+        public XmlFileReadController(IFileReaderEngineFactory factory, IRepository<Import, Guid> importRepo)
         {
             Factory = factory;
             ImportRepository = importRepo;
@@ -28,7 +28,7 @@ namespace Hackathon.Premiersoft.API.Controllers
             try
             {
                 var factory = Factory.CreateFactory(".xml");
-                factory.Run(1);
+                factory.Run(Guid.NewGuid());
             }
             catch (Exception ex)
             {

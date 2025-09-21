@@ -4,15 +4,20 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Hackathon.Premiersoft.API.Models
 {
-    public class Medicos : Entity<long>
+    public class Medicos : Entity<Guid>
     {
         public string Codigo { get; set; }
         public string Nome_completo { get; set; }
         public string Especialidade { get; set; }
 
         [Required]
-        public long MunicipioId { get; set; }
+        public Guid MunicipioId { get; set; }
         [ForeignKey(nameof(MunicipioId))]
         public Municipios Codigo_Municipio { get; set; }
+
+        public Medicos()
+        {
+            Id = Guid.NewGuid();
+        }
     }
 }
