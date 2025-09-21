@@ -1,6 +1,7 @@
 ﻿using Hackathon.Premiersoft.API.Data;
 using Hackathon.Premiersoft.API.Engines.Extensions;
 using Hackathon.Premiersoft.API.Engines.Factory;
+using Hackathon.Premiersoft.API.Engines.Interfaces;
 using Hackathon.Premiersoft.API.Engines.Xml;
 using Hackathon.Premiersoft.API.Messaging.MassTransit;
 using Hackathon.Premiersoft.API.Repository;
@@ -59,6 +60,8 @@ namespace Hackathon.Premiersoft.API
             services.AddScoped<IFileReaderEngine, XmlFileReader>();
             services.AddScoped<IMunicipiosRepository, MunicipiosRepository>();
             //services.AddScoped<IFileReaderEngine, ExcelFileReaderEngine>();
+            services.AddScoped<IEntityFactory, EntityFactory>();
+
             services.AddTransient<IDomainEventsDispatcher, DomainEventsDispatcher>();
 
             services.Scan(scan => scan.FromAssembliesOf(typeof(DependencyInjection))

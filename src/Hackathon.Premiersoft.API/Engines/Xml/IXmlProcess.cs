@@ -5,6 +5,6 @@ namespace Hackathon.Premiersoft.API.Engines.Xml
 {
     public interface IXmlProcess
     {
-        public void Process(List<FileXmlDto> xmlFile, Import import);
+        public void Process(List<FileXmlDto> xmlFile);
     }
 }

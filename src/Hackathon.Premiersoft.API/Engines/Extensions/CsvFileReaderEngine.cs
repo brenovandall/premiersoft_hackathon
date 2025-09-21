@@ -266,10 +266,6 @@ namespace Hackathon.Premiersoft.API.Engines.Extensions
             };
         }
 
-        public void Run(long importId)
-        {
-            throw new NotImplementedException();
-        }
         private string NormalizeHeaderName(string headerName)
         {
             return headerName
