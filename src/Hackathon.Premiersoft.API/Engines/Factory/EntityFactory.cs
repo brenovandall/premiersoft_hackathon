@@ -12,12 +12,13 @@ namespace Hackathon.Premiersoft.API.Engines.Factory
     {
         private IPacientesHandler PacientesHandler { get; set; }
         private IMedicosHandler MedicosHandler { get; set; }
-        private IPacientesHandler MunicipiosHandler { get; set; }
+        private IMuncipiosHandler MunicipiosHandler { get; set; }
 
-        public EntityFactory(IPacientesHandler pacientesHandler, IMedicosHandler medicosHandler)
+        public EntityFactory(IPacientesHandler pacientesHandler, IMedicosHandler medicosHandler, IMuncipiosHandler muncipiosHandler)
         {
             MedicosHandler = medicosHandler;
             PacientesHandler = pacientesHandler;
+            MunicipiosHandler = muncipiosHandler;
         }
 
         public void CreateEntity(IEntityDto dto)
@@ -28,6 +29,9 @@ namespace Hackathon.Premiersoft.API.Engines.Factory
                     PacientesHandler.ProcessarPaciente(dto);
                     break;
                 case ImportDataTypes.Doctor:
+                    MedicosHandler.ProcessarMedicos(dto);
+                    break;
+                case ImportDataTypes.City:
                     MedicosHandler.ProcessarMedicos(dto);
                     break;
                     //case ImportDataTypes.State:

@@ -4,6 +4,7 @@ using Hackathon.Premiersoft.API.Engines.Extensions;
 using Hackathon.Premiersoft.API.Engines.Factory;
 using Hackathon.Premiersoft.API.Engines.Xml;
 using Hackathon.Premiersoft.API.Models;
+using Hackathon.Premiersoft.API.Models.Enums;
 using Hackathon.Premiersoft.API.Repository;
 using Microsoft.AspNetCore.Mvc;
 
@@ -27,6 +28,21 @@ namespace Hackathon.Premiersoft.API.Controllers
         {
             try
             {
+                var import = Import.Create(
+                dataType: ImportDataTypes.City,
+                fileFormat: ImportFileFormat.Xml,
+                fileName: "pacientes_2025_09_20.xml",
+                s3PreSignedUrl: "uploads/municipios/2025-09-21/1758428070712-teste_municipios.xml",
+                totalRegisters: 2,
+                totalImportedRegisters: 110,
+                totalDuplicatedRegisters: 5,
+                totalFailedRegisters: 5,
+                importedOn: DateTime.UtcNow.AddMinutes(-30),
+                finishedOn: DateTime.UtcNow,
+                description: "Arquivo de importação de pacientes de setembro/2025");
+
+                ImportRepository.Add(import);
+
                 var factory = Factory.CreateFactory(".xml");
                 factory.Run(Guid.NewGuid());
             }
@@ -35,7 +51,6 @@ namespace Hackathon.Premiersoft.API.Controllers
                 return Ok(ex.Message);
             }
 
-            // Add your CSV reading logic here
             return Ok("CSV data read successfully");
         }
 
