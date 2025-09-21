@@ -1,4 +1,4 @@
-# PremierSoft Hackathon
+# Premiersoft Hackathon
 
 ## Sobre o Projeto
 
@@ -29,8 +29,8 @@ Siga estes passos simples para colocar o projeto no ar:
 1.  **Clone o repositório** e navegue para a pasta do projeto:
 
     ```bash
-    git clone https://github.com/seu-usuario/nome-do-projeto.git
-    cd nome-do-projeto
+    [git clone https://github.com/seu-usuario/nome-do-projeto.git](https://github.com/brenovandall/premiersoft_hackathon.git)
+    cd premiersoft_hackathon
     ```
 
 2.  **Inicie os containers** usando o Docker Compose. A flag `-d` inicia o serviço em segundo plano:
@@ -44,17 +44,7 @@ Siga estes passos simples para colocar o projeto no ar:
     ```bash
     docker ps
     ```
-
------
-
-## Acessando a Aplicação
-
-Depois de iniciar os containers, abra seu navegador e vá para o seguinte endereço:
-
-`http://localhost:8080`
-
-> **Nota:** A porta padrão é `8080`. Se você a modificou no arquivo `docker-compose.yml`, substitua `8080` pela porta que você configurou.
-
+    
 -----
 
 ## Gerenciando os Containers
