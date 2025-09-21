@@ -2,7 +2,7 @@
 
 ## Sobre o Projeto
 
-Este projeto é um sistema de **dashboard** prático e fácil de usar, projetado para que gestores possam visualizar rapidamente dados importantes. A grande vantagem é que ele é **dockerizado**, o que significa que você pode rodá-lo em qualquer ambiente com o mínimo de esforço.
+Este projeto é um sistema de **dashboard hospitalar** prático e fácil de usar, projetado para que gestores possam visualizar rapidamente dados importantes. A grande vantagem é que ele é **dockerizado**, o que significa que você pode rodá-lo em qualquer ambiente com o mínimo de esforço.
 
 O dashboard é alimentado por arquivos de diversos formatos, como:
 
