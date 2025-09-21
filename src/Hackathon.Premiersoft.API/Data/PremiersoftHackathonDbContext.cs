@@ -22,7 +22,7 @@ namespace Hackathon.Premiersoft.API.Data
         }
 
         public DbSet<Estados> Estados { get; set; }
-        public DbSet<Municipios> Cidades { get; set; }
+        public DbSet<Municipios> Municipios { get; set; }
         public DbSet<Medicos> Medicos { get; set; }
         public DbSet<Hospitais> Hospitais { get ; set; }
         public DbSet<Pacientes> Pacientes { get; set; }

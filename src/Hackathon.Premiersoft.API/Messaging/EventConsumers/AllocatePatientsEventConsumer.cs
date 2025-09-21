@@ -27,7 +27,7 @@ namespace Hackathon.Premiersoft.API.Messaging.EventConsumers
 
             // Buscar hospitais com suas especialidades
             var hospitals = await _dbContext.Hospitais
-                .Include(h => h.Cidade)
+                .Include(h => h.Municipio)
                 .Include(h => h.PatientsHospitals)
                 .ToListAsync();
 
@@ -72,8 +72,8 @@ namespace Hackathon.Premiersoft.API.Messaging.EventConsumers
                         Distancia = GeoUtils.CalculateDistance(
                             (double)patient.Codigo_Municipio.Latitude,
                             (double)patient.Codigo_Municipio.Longitude,
-                            (double)h.Cidade.Latitude,
-                            (double)h.Cidade.Longitude)
+                            (double)h.Municipio?.Latitude,
+                            (double)h.Municipio?.Longitude)
                     })
                     .OrderBy(hd => hd.Distancia)
                     .ToList();

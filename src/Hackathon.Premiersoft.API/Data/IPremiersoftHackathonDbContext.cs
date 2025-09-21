@@ -6,7 +6,7 @@ namespace Hackathon.Premiersoft.API.Data
     public interface IPremiersoftHackathonDbContext
     {
         DbSet<Estados> Estados { get; }
-        DbSet<Municipios> Cidades { get; }
+        DbSet<Municipios> Municipios { get; }
         DbSet<Medicos> Medicos { get; }
         DbSet<Hospitais> Hospitais { get; }
         DbSet<Pacientes> Pacientes { get; }

@@ -50,7 +50,7 @@ namespace Hackathon.Premiersoft.API.Services
 
         public async Task<IEnumerable<MunicipiosDto>> GetMunicipiosAsync()
         {
-            var municipios = await _context.Cidades
+            var municipios = await _context.Municipios
                 .Select(m => new MunicipiosDto
                 {
                     Id = m.Id,
@@ -72,7 +72,7 @@ namespace Hackathon.Premiersoft.API.Services
 
         public async Task<IEnumerable<MunicipiosDto>> GetMunicipiosByEstadoAsync(string codigoUf)
         {
-            var municipios = await _context.Cidades
+            var municipios = await _context.Municipios
                 .Where(m => m.Codigo_uf == codigoUf)
                 .Select(m => new MunicipiosDto
                 {
@@ -136,14 +136,14 @@ namespace Hackathon.Premiersoft.API.Services
         public async Task<IEnumerable<HospitaisDto>> GetHospitaisAsync()
         {
             var hospitais = await _context.Hospitais
-                .Include(h => h.Cidade)
+                .Include(h => h.Municipio)
                 .Select(h => new HospitaisDto
                 {
                     Id = h.Id,
                     Codigo = h.Codigo,
                     Nome = h.Nome,
                     Bairro = h.Bairro,
-                    Cidade = h.Cidade.Nome,
+                    Cidade = h.Municipio.Nome,
                     Leitos_totais = h.Leitos_totais
                 })
                 .ToListAsync();
@@ -154,13 +154,13 @@ namespace Hackathon.Premiersoft.API.Services
         public async Task<IEnumerable<HospitalListDto>> GetHospitalsListAsync()
         {
             var hospitais = await _context.Hospitais
-                .Include(h => h.Cidade)
+                .Include(h => h.Municipio)
                 .Select(h => new HospitalListDto
                 {
                     Id = (int)h.Id.GetHashCode(), // Conversão temporária para int
                     Nome = h.Nome,
-                    Cidade = h.Cidade.Nome,
-                    Uf = h.Cidade.Codigo_uf
+                    Cidade = h.Municipio.Nome,
+                    Uf = h.Municipio.Codigo_uf
                 })
                 .ToListAsync();
 
@@ -170,7 +170,7 @@ namespace Hackathon.Premiersoft.API.Services
         public async Task<HospitalDetailsDto?> GetHospitalDetailsAsync(int hospitalId)
         {
             var hospital = await _context.Hospitais
-                .Include(h => h.Cidade)
+                .Include(h => h.Municipio)
                 .Where(h => h.Id.GetHashCode() == hospitalId)
                 .FirstOrDefaultAsync();
 
@@ -179,12 +179,12 @@ namespace Hackathon.Premiersoft.API.Services
 
             // Contar médicos alocados ao hospital (assumindo relação através da cidade)
             var medicosAlocados = await _context.Medicos
-                .Where(m => m.Codigo_Municipio.Nome == hospital.Cidade.Nome)
+                .Where(m => m.Codigo_Municipio.Nome == hospital.Municipio.Nome)
                 .CountAsync();
 
             // Contar pacientes do hospital (assumindo relação através da cidade)
             var pacientesHospital = await _context.Pacientes
-                .Where(p => p.Codigo_Municipio.Nome == hospital.Cidade.Nome)
+                .Where(p => p.Codigo_Municipio.Nome == hospital.Municipio.Nome)
                 .CountAsync();
 
             // Simular leitos ocupados (seria melhor ter uma tabela de ocupação)
@@ -195,9 +195,9 @@ namespace Hackathon.Premiersoft.API.Services
             {
                 Id = hospitalId,
                 Nome = hospital.Nome,
-                Cidade = hospital.Cidade.Nome,
+                Cidade = hospital.Municipio.Nome,
                 Estado = "Estado", // Temporário - precisaria buscar do estado
-                Uf = hospital.Cidade.Codigo_uf,
+                Uf = hospital.Municipio.Codigo_uf,
                 LeitosTotal = (int)hospital.Leitos_totais,
                 LeitosOcupados = leitosOcupados,
                 MedicosAlocados = medicosAlocados,
@@ -218,7 +218,7 @@ namespace Hackathon.Premiersoft.API.Services
 
             // Buscar médicos por especialidade na região do hospital
             var especialidades = await _context.Medicos
-                .Where(m => m.Codigo_Municipio.Nome == hospital.Cidade.Nome)
+                .Where(m => m.Codigo_Municipio.Nome == hospital.Municipio.Nome)
                 .GroupBy(m => m.Especialidade)
                 .Select(g => new HospitalSpecialtyDto
                 {

@@ -36,7 +36,7 @@ namespace Hackathon.Premiersoft.API.Controllers
                     .Include(ph => ph.Patient)
                         .ThenInclude(p => p.Codigo_Municipio)
                     .Include(ph => ph.Hospital)
-                        .ThenInclude(h => h.Cidade)
+                        .ThenInclude(h => h.Municipio)
                     .AsQueryable();
 
                 // Aplicar filtros
@@ -84,7 +84,7 @@ namespace Hackathon.Premiersoft.API.Controllers
                     Prioridade = ph.Prioridade,
                     Observacoes = ph.Observacoes,
                     PacienteMunicipio = ph.Patient.Codigo_Municipio.Nome,
-                    HospitalMunicipio = ph.Hospital.Cidade.Nome,
+                    HospitalMunicipio = ph.Hospital.Municipio?.Nome ?? "",
                     Regiao = ph.Patient.Codigo_Municipio.Codigo_uf
                 }).ToList();
 
@@ -117,7 +117,7 @@ namespace Hackathon.Premiersoft.API.Controllers
                     .Include(ph => ph.Patient)
                         .ThenInclude(p => p.Codigo_Municipio)
                     .Include(ph => ph.Hospital)
-                        .ThenInclude(h => h.Cidade)
+                        .ThenInclude(h => h.Municipio)
                     .Where(ph => ph.PatientId == patientId)
                     .OrderByDescending(ph => ph.DataAlocacao)
                     .ToListAsync();
@@ -138,7 +138,7 @@ namespace Hackathon.Premiersoft.API.Controllers
                     Prioridade = ph.Prioridade,
                     Observacoes = ph.Observacoes,
                     PacienteMunicipio = ph.Patient.Codigo_Municipio.Nome,
-                    HospitalMunicipio = ph.Hospital.Cidade.Nome,
+                    HospitalMunicipio = ph.Hospital.Municipio?.Nome ?? "",
                     Regiao = ph.Patient.Codigo_Municipio.Codigo_uf
                 }).ToList();
 
