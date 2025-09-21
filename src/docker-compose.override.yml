@@ -14,6 +14,7 @@ services:
     environment:
       - RABBITMQ_DEFAULT_USER=guest
       - RABBITMQ_DEFAULT_PASS=guest
+      - RABBITMQ_PLUGINS=rabbitmq_delayed_message_exchange
     restart: always
     ports:
       - "5672:5672"
@@ -38,3 +39,21 @@ services:
       # - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
       - ~/.microsoft/usersecrets:/home/app/.microsoft/usersecrets:ro
       - ~/.aspnet/https:/home/app/.aspnet/https:ro
+
+  hackathon.premiersoft.frontend:
+    build:
+      context: ../UI
+      dockerfile: Dockerfile
+    container_name: hackathon-frontend
+    environment:
+      - VITE_AWS_ACCESS_KEY_ID=AKIA3WB4RELIHVOTFWPR
+      - VITE_AWS_SECRET_ACCESS_KEY=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
+      - VITE_AWS_REGION=us-east-1
+      - VITE_AWS_S3_BUCKET_NAME=premiersoft-hackathon-uploads
+      - VITE_AWS_USE_ACCELERATION=true
+      - VITE_API_BASE_URL=http://hackathon.premiersoft.api:8080
+      - VITE_MAX_FILE_SIZE=5368709120
+    ports:
+      - "3000:80"
+    depends_on:
+      - hackathon.premiersoft.api

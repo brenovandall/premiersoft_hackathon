@@ -26,7 +26,9 @@ namespace Hackathon.Premiersoft.API.Messaging.EventConsumers
 
         public async Task Consume(ConsumeContext<ImportFileEvent> context)
         {
-            if (await IsBucketReady(context.Message.PreSignedUrl))
+            var isReadyFile = await IsBucketReady(context.Message.PreSignedUrl);
+
+            if (isReadyFile)
             {
                 var importId = context.Message.ImportId;
 
@@ -68,7 +70,7 @@ namespace Hackathon.Premiersoft.API.Messaging.EventConsumers
             }
             else
             {
-                await context.SchedulePublish(DateTime.Now.AddSeconds(30), context.Message);
+                await context.Defer(TimeSpan.FromSeconds(15));
             }
         }
 
