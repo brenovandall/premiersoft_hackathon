@@ -57,7 +57,7 @@ namespace Hackathon.Premiersoft.API.Services
                 }
 
                 // Registra o erro na tabela LineError
-                await LogLineErrorAsync(importId, lineNumber, ex, rawData);
+                await LogLineErrorInternal(importId, lineNumber, ex, rawData);
                 
                 return false;
             }
@@ -129,7 +129,19 @@ namespace Hackathon.Premiersoft.API.Services
             }
         }
 
-        private async Task LogLineErrorAsync(Guid importId, long lineNumber, Exception ex, Dictionary<string, object> rawData)
+        /// <summary>
+        /// Loga um erro de linha publicamente
+        /// </summary>
+        /// <param name="importId">ID da importação</param>
+        /// <param name="lineNumber">Número da linha</param>
+        /// <param name="ex">Exceção ocorrida</param>
+        /// <param name="rawData">Dados brutos da linha</param>
+        public async Task LogLineErrorAsync(Guid importId, long lineNumber, Exception ex, Dictionary<string, object> rawData)
+        {
+            await LogLineErrorInternal(importId, lineNumber, ex, rawData);
+        }
+
+        private async Task LogLineErrorInternal(Guid importId, long lineNumber, Exception ex, Dictionary<string, object> rawData)
         {
             try
             {

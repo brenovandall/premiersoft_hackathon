@@ -135,15 +135,27 @@ namespace Hackathon.Premiersoft.API.Engines.Extensions
         {
             try
             {
+                Console.WriteLine($"[DEBUG] Processando estado na linha {lineNumber}");
                 var estado = MapCsvToEstado(row);
+                Console.WriteLine($"[DEBUG] Estado mapeado: UF={estado.Uf}, Nome={estado.Nome}");
+                
                 var isDuplicate = await _recordProcessingService.IsDuplicateAsync(estado, new[] { "Uf" });
-                if (isDuplicate) return true;
+                if (isDuplicate) 
+                {
+                    Console.WriteLine($"[DEBUG] Estado duplicado detectado: {estado.Uf}");
+                    return true;
+                }
 
-                return await _recordProcessingService.ProcessRecordAsync(estado, importId, lineNumber, row.Data);
+                var result = await _recordProcessingService.ProcessRecordAsync(estado, importId, lineNumber, row.Data);
+                Console.WriteLine($"[DEBUG] Resultado do processamento: {result}");
+                return result;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erro ao processar estado na linha {lineNumber}: {ex.Message}");
+                Console.WriteLine($"[ERROR] Erro ao processar estado na linha {lineNumber}: {ex.Message}");
+                Console.WriteLine($"[ERROR] StackTrace: {ex.StackTrace}");
+                // Agora vamos chamar diretamente o LogLineErrorAsync
+                await _recordProcessingService.LogLineErrorAsync(importId, lineNumber, ex, row.Data);
                 return false;
             }
         }
