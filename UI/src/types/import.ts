@@ -2,6 +2,49 @@ export type DataType = "hospitals" | "doctors" | "patients" | "locations" | "cid
 export type FileFormat = "xml" | "csv" | "xlsx" | "xls";
 export type ImportStatus = "processing" | "success" | "warning" | "error";
 
+// Enums para alinhamento com o backend
+export enum ImportDataTypes {
+  Customers = 1,
+  Products = 2,
+  Orders = 3,
+  Inventory = 4,
+  Financial = 5,
+  Users = 6,
+  Suppliers = 7,
+  Categories = 8
+}
+
+export enum ImportFileFormat {
+  CSV = 1,
+  Excel = 2,
+  JSON = 3,
+  XML = 4
+}
+
+export enum ImportStatusEnum {
+  Pending = 1,
+  Processing = 2,
+  Completed = 3,
+  Failed = 4
+}
+
+// Interface para o KeyPair do backend
+export interface KeyPair {
+  from: string;
+  to: string;
+}
+
+// Interface para ImportFilesRequest conforme o backend
+export interface ImportFilesRequest {
+  dataType: ImportDataTypes;
+  fileFormat: ImportFileFormat;
+  description?: string;
+  fileName: string;
+  s3PreSignedUrl: string;
+  status: ImportStatusEnum;
+  fieldMappings: KeyPair[];
+}
+
 export interface ImportRecord {
   id: string;
   fileName: string;
