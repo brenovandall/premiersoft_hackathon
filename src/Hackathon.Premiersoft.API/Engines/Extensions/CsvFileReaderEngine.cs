@@ -5,6 +5,7 @@ using Hackathon.Premiersoft.API.Engines.Factory;
 using Hackathon.Premiersoft.API.Models;
 using Hackathon.Premiersoft.API.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
 
@@ -14,15 +15,18 @@ namespace Hackathon.Premiersoft.API.Engines.Extensions
     {
         private readonly IPremiersoftHackathonDbContext _dbContext;
         private readonly RecordProcessingService _recordProcessingService;
+        private readonly IServiceScopeFactory _scopeFactory;
 
         public string FileReaderProvider => Extensions.FileReaderProvider.CsvReaderProvider;
 
         public CsvFileReaderEngine(
             IPremiersoftHackathonDbContext dbContext,
-            RecordProcessingService recordProcessingService)
+            RecordProcessingService recordProcessingService,
+            IServiceScopeFactory scopeFactory)
         {
             _dbContext = dbContext;
             _recordProcessingService = recordProcessingService;
+            _scopeFactory = scopeFactory;
         }
 
         public async Task Run(Guid importId)
@@ -51,7 +55,7 @@ namespace Hackathon.Premiersoft.API.Engines.Extensions
             var s3Service = new S3Service();
             using var reader = await s3Service.ObterLeitorDoArquivoAsync(import.S3PreSignedUrl);
 
-            var csvReader = new CsvFileReaderProcess();
+            var csvReader = new CsvFileReaderProcess(_scopeFactory);
             var csvData = await csvReader.ParseCsvDataAsync(reader);
 
             int totalProcessed = 0;
@@ -242,8 +246,7 @@ namespace Hackathon.Premiersoft.API.Engines.Extensions
                 Siafi_id = GetIntValue(row, "siafi_id") ?? 0,
                 Ddd = GetIntValue(row, "ddd") ?? 0,
                 Fuso_horario = GetStringValue(row, "fuso_horario") ?? "",
-                Populacao = GetIntValue(row, "populacao") ?? 0,
-                Erros = ""
+                Populacao = GetIntValue(row, "populacao") ?? 0
             };
         }
 

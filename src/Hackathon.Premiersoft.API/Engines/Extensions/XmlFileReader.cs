@@ -32,7 +32,7 @@ namespace Hackathon.Premiersoft.API.Engines.Extensions
             _recordProcessingService = recordProcessingService;
         }
 
-        public async void Run(Guid importId)
+        public async Task Run(Guid importId)
         {
             var contador = new Stopwatch();
             contador.Start();

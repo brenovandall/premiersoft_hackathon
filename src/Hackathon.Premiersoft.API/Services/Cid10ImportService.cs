@@ -84,14 +84,15 @@ namespace Hackathon.Premiersoft.API.Services
                 // Obter códigos existentes no banco
                 var existingCodes = await _dbContext.Set<Cid10>()
                     .Select(c => c.Codigo)
-                    .ToHashSetAsync();
+                    .ToListAsync();
+                var existingCodesSet = existingCodes.ToHashSet();
 
                 var newCid10Items = new List<Cid10>();
 
                 foreach (var cid10 in cid10List)
                 {
                     // Verifica se o código já existe
-                    if (existingCodes.Contains(cid10.Codigo))
+                    if (existingCodesSet.Contains(cid10.Codigo))
                     {
                         result.SkippedCount++;
                         continue;
@@ -112,7 +113,7 @@ namespace Hackathon.Premiersoft.API.Services
                 if (newCid10Items.Any())
                 {
                     await _dbContext.Set<Cid10>().AddRangeAsync(newCid10Items);
-                    await _dbContext.SaveChangesAsync();
+                    await _dbContext.SaveChangesAsync(CancellationToken.None);
                 }
 
                 result.Success = true;

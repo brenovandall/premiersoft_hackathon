@@ -29,7 +29,7 @@ namespace Hackathon.Premiersoft.API.Engines.Extensions
             _recordProcessingService = recordProcessingService;
         }
 
-        public void Run(Guid importId)
+        public async Task Run(Guid importId)
         {
             var import = await _dbContext.Imports.FirstOrDefaultAsync(i => i.Id == importId);
             if (import == null)
