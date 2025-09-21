@@ -31,6 +31,8 @@ namespace Hackathon.Premiersoft.API.Data
         public DbSet<LineError> LineErrors { get; set; }
         public DbSet<Lookup> Lookups { get; set; }
         public DbSet<DoctorsHospitals> DoctorsHospitals { get; set; }
+        public DbSet<PatientsHospitals> PatientsHospitals { get; set; }
+        public DbSet<Cid10Especialidade> Cid10Especialidades { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

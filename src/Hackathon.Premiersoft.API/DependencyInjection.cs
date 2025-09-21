@@ -85,6 +85,7 @@ namespace Hackathon.Premiersoft.API
             services.AddScoped<IImportFilesService, ImportFilesService>();
             services.AddScoped<IGetDataService, GetDataService>();
             services.AddScoped<ICid10ImportService, Cid10ImportService>();
+            services.AddScoped<Cid10EspecialidadeService>();
             services.AddTransient<IDomainEventsDispatcher, DomainEventsDispatcher>();
 
             services.Scan(scan => scan.FromAssembliesOf(typeof(DependencyInjection))
