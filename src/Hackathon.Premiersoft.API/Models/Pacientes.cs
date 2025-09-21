@@ -23,6 +23,8 @@ namespace Hackathon.Premiersoft.API.Models
         [ForeignKey(nameof(Cid10Id))]
         public Cid10 Cid10 { get; set; }
 
+        public ICollection<PatientsHospitals> PatientsHospitals { get; private set; } = [];
+
         public Pacientes()
         {
             Id = Guid.NewGuid();

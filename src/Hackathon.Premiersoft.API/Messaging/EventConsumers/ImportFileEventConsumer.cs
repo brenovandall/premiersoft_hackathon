@@ -3,6 +3,7 @@ using Hackathon.Premiersoft.API.Engines.Factory;
 using Hackathon.Premiersoft.API.Messaging.Events;
 using Hackathon.Premiersoft.API.Models.Enums;
 using Hackathon.Premiersoft.API.Services;
+using Hackathon.Premiersoft.API.SharedKernel;
 using MassTransit;
 
 namespace Hackathon.Premiersoft.API.Messaging.EventConsumers
@@ -10,26 +11,22 @@ namespace Hackathon.Premiersoft.API.Messaging.EventConsumers
     public class ImportFileEventConsumer : IConsumer<ImportFileEvent>
     {
         private readonly IFileReaderEngineFactory _fileReaderFactory;
+        private readonly IDomainEventsDispatcher _domainEventsDispatcher;
         private readonly IPremiersoftHackathonDbContext _premiersoftHackathonDbContext;
 
-        public ImportFileEventConsumer(IFileReaderEngineFactory fileReaderFactory, IPremiersoftHackathonDbContext premiersoftHackathonDbContext)
+        public ImportFileEventConsumer(
+            IFileReaderEngineFactory fileReaderFactory,
+            IDomainEventsDispatcher domainEventsDispatcher,
+            IPremiersoftHackathonDbContext premiersoftHackathonDbContext)
         {
             _fileReaderFactory = fileReaderFactory;
+            _domainEventsDispatcher = domainEventsDispatcher;
             _premiersoftHackathonDbContext = premiersoftHackathonDbContext;
         }
 
         public async Task Consume(ConsumeContext<ImportFileEvent> context)
         {
-            var s3Client = S3Service.GetS3Client();
-
-            var headResponse = await s3Client.GetObjectMetadataAsync(
-                "premiersoft-hackathon-uploads",
-                context.Message.PreSignedUrl
-            );
-
-            var isFileReady = headResponse.ContentLength > 0;
-
-            if (isFileReady)
+            if (await IsBucketReady(context.Message.PreSignedUrl))
             {
                 var importId = context.Message.ImportId;
 
@@ -59,6 +56,15 @@ namespace Hackathon.Premiersoft.API.Messaging.EventConsumers
                     importEntity.UpdateStatus(ImportStatus.Done);
                 }
                 _premiersoftHackathonDbContext.SaveChanges();
+
+                if (importEntity.DataType == ImportDataTypes.Doctor)
+                {
+                    await DispatchDoctors();
+                }
+                else if (importEntity.DataType == ImportDataTypes.Patient)
+                {
+                    await DispatchPatients();
+                }
             }
             else
             {
@@ -76,6 +82,25 @@ namespace Hackathon.Premiersoft.API.Messaging.EventConsumers
             }
 
             return factory;
+        }
+
+        private async Task DispatchDoctors()
+        {
+            var events = new List<AllocateDoctorsEvent>() { new(Guid.NewGuid()) };
+            await _domainEventsDispatcher.DispatchAsync(events);
+        }
+
+        private async Task DispatchPatients()
+        {
+            var events = new List<AllocatePatientsEvent>() { new(Guid.NewGuid()) };
+            await _domainEventsDispatcher.DispatchAsync(events);
+        }
+
+        private async Task<bool> IsBucketReady(string bucketKey)
+        {
+            var s3Client = S3Service.GetS3Client();
+            var headResponse = await s3Client.GetObjectMetadataAsync("premiersoft-hackathon-uploads", bucketKey);
+            return headResponse.ContentLength > 0;
         }
     }
 }
