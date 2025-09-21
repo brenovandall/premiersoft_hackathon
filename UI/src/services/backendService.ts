@@ -1,4 +1,4 @@
-import { ImportFilesRequest, KeyPair, BackendProcessingData, DataType, FileFormat } from '@/types/import';
+import { ImportFilesRequest, KeyPair, BackendProcessingData, DataType, FileFormat, ImportRecord, ImportStatus } from '@/types/import';
 
 // Interfaces para resposta do backend
 export interface BackendProcessingResponse {
@@ -28,7 +28,7 @@ export interface ImportStatusResponse {
 
 // Configuração da API do backend
 const API_CONFIG = {
-  baseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:6000/v1',
+  baseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/v1',
   timeout: 30000, // 30 segundos
 };
 
@@ -459,6 +459,122 @@ export async function testBackendConnection(): Promise<{ success: boolean; messa
     return { 
       success: false, 
       message: error instanceof Error ? error.message : 'Erro de conectividade' 
+    };
+  }
+}
+
+/**
+ * Busca o histórico de importações do backend
+ */
+export async function getImportHistory(): Promise<{ success: boolean; data?: any[]; error?: string }> {
+  try {
+    console.log('📥 Buscando histórico de importações...');
+
+    const response = await fetch(`${API_CONFIG.baseUrl}/ImportFiles`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      signal: AbortSignal.timeout(API_CONFIG.timeout),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ Erro HTTP ao buscar histórico:', response.status, errorText);
+      throw new Error(`HTTP ${response.status}: ${errorText}`);
+    }
+
+    const data = await response.json();
+    console.log('✅ Histórico de importações recebido:', data);
+    
+    return {
+      success: true,
+      data: data || []
+    };
+
+  } catch (error) {
+    console.error('❌ Erro ao buscar histórico de importações:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Erro desconhecido'
+    };
+  }
+}
+
+/**
+ * Converte os dados da API para o formato ImportRecord
+ */
+function convertApiDataToImportRecord(apiData: any): ImportRecord {
+  // Mapear dataType numérico para string
+  const dataTypeMap: Record<number, DataType> = {
+    1: "municipios",
+    2: "estados", 
+    3: "medicos",
+    4: "hospitais",
+    5: "pacientes",
+    6: "cid10"
+  };
+
+  // Mapear fileFormat numérico para string
+  const fileFormatMap: Record<number, FileFormat> = {
+    1: "csv",
+    2: "xlsx",
+    3: "csv", // JSON mapeado para CSV por compatibilidade
+    4: "xml"
+  };
+
+  // Mapear status numérico para string
+  const statusMap: Record<number, ImportStatus> = {
+    1: "processing",
+    2: "processing", 
+    3: "success",
+    4: "error"
+  };
+
+  return {
+    id: apiData.id?.toString() || apiData.id,
+    fileName: apiData.fileName || 'Arquivo sem nome',
+    dataType: dataTypeMap[apiData.dataType] || "municipios",
+    fileFormat: fileFormatMap[apiData.fileFormat] || "csv",
+    uploadDate: new Date(apiData.importedOn || Date.now()),
+    status: statusMap[apiData.status] || "processing",
+    summary: `Processamento de ${dataTypeMap[apiData.dataType] || 'dados'}`,
+    totalRecords: apiData.totalRegisters || 0,
+    successfulRecords: apiData.totalImportedRegisters || 0,
+    errorRecords: apiData.totalFailedRegisters || 0,
+    duplicateRecords: apiData.totalDuplicatedRegisters || 0,
+    description: `Importação de ${apiData.fileName}`,
+    errors: apiData.lineErrors?.map((error: any) => ({
+      line: error.line || 0,
+      field: error.field || 'Campo desconhecido',
+      message: error.message || 'Erro não especificado',
+      data: error.data
+    })) || []
+  };
+}
+
+/**
+ * Busca e converte o histórico de importações
+ */
+export async function getImportRecords(): Promise<{ success: boolean; data?: ImportRecord[]; error?: string }> {
+  const result = await getImportHistory();
+  
+  if (!result.success) {
+    return result;
+  }
+
+  try {
+    const convertedData = result.data?.map(convertApiDataToImportRecord) || [];
+    return {
+      success: true,
+      data: convertedData
+    };
+  } catch (error) {
+    console.error('❌ Erro ao converter dados:', error);
+    return {
+      success: false,
+      error: 'Erro ao processar dados do histórico'
     };
   }
 }
